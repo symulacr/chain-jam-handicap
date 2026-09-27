@@ -1,0 +1,797 @@
+================================================================================
+HANDICAP — verification record (top3/02-handicap)
+================================================================================
+Phase : FINAL BUILD-COMPLETION, Wave 2B (restructure of jam-candidates/handicap)
+Tree  : /home/eya/wtfjam/top3/02-handicap
+Node  : v26.10.0      solc : 0.8.34+commit.80d5c536.Linux.g++      Chrome : 154.0.8037.57
+Note  : this is a RESTRUCTURE, not a rewrite. The maths, the contract derivation and the verified
+        behaviour are the candidate's; only the file layout changed, plus one LOW-severity contract
+        tidy (see §5). The only paths edited in copied sources were import specifiers and comments.
+
+--------------------------------------------------------------------------------
+0. Provenance — what was copied verbatim
+--------------------------------------------------------------------------------
+game/model.mjs        <- jam-candidates/handicap/model.mjs                (outcome()+paytable; only a comment path updated)
+src/sdk/guest.mjs     <- jam-candidates/shared/guest.mjs                  (BYTE-IDENTICAL)
+contracts/*.sol       <- jam-candidates/handicap/contracts/*.sol          (HandicapGame.sol: one LOW fix, §5)
+tests/model.test.mjs  <- jam-candidates/handicap/tests/model.test.mjs      (only the import specifier: '../model.mjs' -> '../game/model.mjs')
+tools/enumerate.mjs   <- jam-candidates/handicap/tools/enumerate.mjs       (only the import specifier)
+public/game.manifest.json <- jam-candidates/handicap/game.manifest.json    (byte-identical)
+public/og-image.png   <- jam-candidates/handicap/og-image.png              (byte-identical)
+docs/rtp-proof.md     <- jam-candidates/handicap/rtp-proof.md              (path references updated)
+docs/*.md             <- jam-candidates/handicap/reports/*.md              (content kept; renamed/adapted to the layout)
+
+$ sha256sum src/sdk/guest.mjs jam-candidates/shared/guest.mjs
+46263af16ea64b0e1f3e118764f82e463cd58ef1925a7b3a6af33baa121e75fe  src/sdk/guest.mjs
+46263af16ea64b0e1f3e118764f82e463cd58ef1925a7b3a6af33baa121e75fe  /home/eya/wtfjam/jam-candidates/shared/guest.mjs
+
+--------------------------------------------------------------------------------
+1. npm run build      (assemble dist/ by a plain copy; no bundler, no dependency)
+--------------------------------------------------------------------------------
+
+> handicap@1.0.0 build
+> node tools/build.mjs
+
+build: dist/ assembled
+       882  dist/_headers
+     11159  dist/game/model.mjs
+      5932  dist/game/README.md
+       873  dist/game.manifest.json
+      4128  dist/index.html
+     15241  dist/og-image.png
+     14332  dist/src/app.js
+     26836  dist/src/sdk/guest.mjs
+      6644  dist/src/styles.css
+       474  dist/vercel.json
+
+10 files, 86501 bytes raw
+
+  dist total: 86,501 B raw / 32,510 B gzip.
+  Source page files (index.html + src/app.js + src/styles.css + game/model.mjs + src/sdk/guest.mjs):
+  63,099 B raw / 19,396 B gzip.
+  (The candidate's dist was 79,965 B raw / 29,101 B gzip; the difference is the added
+  game/README.md and the split src/ files, not a change to the page's served payload logic.)
+
+--------------------------------------------------------------------------------
+2. npm run check      (node --check every .js/.mjs; package.json "type":"module")
+--------------------------------------------------------------------------------
+
+> handicap@1.0.0 check
+> node tools/check.mjs
+
+  ok    dist/game/model.mjs
+  ok    dist/src/app.js
+  ok    dist/src/sdk/guest.mjs
+  ok    game/model.mjs
+  ok    src/app.js
+  ok    src/sdk/guest.mjs
+  ok    tests/contract.test.mjs
+  ok    tests/model.test.mjs
+  ok    tools/browser-check.mjs
+  ok    tools/build.mjs
+  ok    tools/check.mjs
+  ok    tools/enumerate.mjs
+  ok    tools/serve.mjs
+
+13 files parsed, 0 failed
+
+--------------------------------------------------------------------------------
+3. npm test      (model tests + chain-free contract tests; all assertions kept)
+--------------------------------------------------------------------------------
+
+> handicap@1.0.0 test
+> node --test tests/model.test.mjs tests/contract.test.mjs
+
+contract-level (tests/contract.test.mjs, added in the restructure; no chain needed):
+✔ contract is MIT and pinned to the required compiler line
+✔ contract implements the ICasinoGameV2 surface
+✔ interface declares the session enum and the context/step shapes
+✔ there is no constructor and every handler is pure or view
+✔ onPlayerAction reverts (the manifest advertises submitAction: false)
+✔ quoteForfeitPayout returns 0 (nothing is cashable mid-round)
+✔ reserve discipline: start commits the worst case, settle releases nothing
+✔ MAX_PRICE_BPS equals the largest price field on either side of the book
+✔ payout is the single floor-divided source of truth and the RTP constant is present
+✔ the committed side is read back from gameState (finding S2 fixed)
+✔ the row tables in the contract are the model tables
+
+model-level (tests/model.test.mjs, ported from the candidate — assertions unchanged):
+✔ SLUG and RTP declaration
+✔ BANDS tile the stat space with no gap, no overlap and non-decreasing multipliers
+✔ bandOf agrees with BANDS at both edges of every band
+✔ row Grundy table equals an independently written brute-force search
+✔ worked examples: full row, 4-pin run, empty board, tier boundaries
+✔ the winner is exactly "the XOR of the row Grundy values is non-zero"
+✔ moves/tier boundaries
+✔ contract price tables match model.mjs band-for-band
+✔ contract carries the model table constants verbatim
+✔ makeRng returns distinct 32-byte words across magnitudes up to 2^52
+✔ makeRng is a pure counter function with no float drift
+✔ exact RTP across the whole 2^18 board space matches the declaration
+✔ both sides of the book return the same RTP (within 1 bp)
+ℹ tests 24
+ℹ pass 24
+ℹ fail 0
+ℹ duration_ms 764.634913
+
+--------------------------------------------------------------------------------
+4. npm run enumerate      (the exhaustive RTP proof over all 2^18 boards)
+--------------------------------------------------------------------------------
+
+> handicap@1.0.0 enumerate
+> node tools/enumerate.mjs
+
+slug                  handicap
+boards enumerated     262,144 (2^18, every board equally likely)
+word->board mismatches 0
+grundy/stat mismatches 0
+
+tier  branching      boards      P(First)   price FIRST   price SECOND
+  0   19..33        22309     0.8820      1.0771       8.0492
+  1   14..18        84625     0.7749      1.2260       4.2195
+  2   11..13        75162     0.7708      1.2325       4.1451
+  3   7..10         67005     0.7516      1.2639       3.8252
+  4   0..6          13043     0.6753      1.4068       2.9258
+
+exact RTP backing FIRST  94.9999%  (9500 bps)
+exact RTP backing SECOND 95.0001%  (9500 bps)
+declared EXPECTED_RTP_BPS 9500
+gap between the two sides  0.02 bps
+sampler/paytable self-consistency mismatches over 20,000 rounds: 0
+
+ENUMERATION OK
+
+  => FIRST/SECOND ≈ 9500 bps confirmed. This is the project's own enumerator, unchanged in logic
+     from the verified candidate; it reports the same tier counts and the same 0.02 bps gap.
+
+--------------------------------------------------------------------------------
+5. Contract compile + the one code fix
+--------------------------------------------------------------------------------
+$ cd contracts && solc --optimize --optimize-runs 200 --bin --bin-runtime HandicapGame.sol
+Compiler run successful.
+HandicapGame.bin          2561 bytes creation  (was 2452 in the candidate: +109)
+HandicapGame.bin-runtime  2533 bytes runtime   (was 2424 in the candidate: +109)
+
+Unoptimized creation: 4068 bytes.
+
+Applied the audit finding S2 (LOW, research/wave7-audit-novelty-licensing-security.md):
+onRandomness now reads the committed side back from the gameState written at onSessionStart
+(via _committedPick) instead of re-reading it from gameData, matching the lifeboat pattern.
+_committedPick falls back to gameData when no committed state is present, so behaviour CANNOT
+regress. Re-verified: contract compiles; the price tables are untouched and still match
+game/model.mjs band-for-band (§3 "contract price tables match model.mjs band-for-band" PASS);
+the exact RTP is unchanged (§4).
+
+--------------------------------------------------------------------------------
+6. Acceptance harness — node jam-candidates/tools/verify-candidate.mjs top3/02-handicap
+--------------------------------------------------------------------------------
+
+==============================================================================
+02-handicap
+==============================================================================
+  [PASS]  1 structure     5 required files present
+  [PASS]  2 syntax        13 JS files parse
+  [PASS]  3 manifest      valid (gameId=HandicapGame, mode=full-iframe)
+  [PASS]  4 widget tag    widget tag present; page loads the verified model
+  [PASS]  5 hygiene       17 shipped files; 2 self-generated image(s); 0 banned strings; 0 third-party binaries
+  [PASS]  6 framing       no framing blocker in any shipped host config
+  [INFO]  7 ref param     does not read the query string — ?ref=chainjam is inherently tolerated
+  [INFO]  8 og:image      og:image present: og-image.png
+  [PASS]  9 model loads   SLUG=handicap, declared 9500 bps
+  [PASS] 10 paytable      6 bands, 0..15, monotonic, boundaries exact
+  [PASS] 11 rtp truth     9503 bps measured vs 9500 declared (CI +/-7, allowed +/-30 bps), stat 0..12
+  [PASS] 12 rtp sampler   9501 bps via makeRng vs 9498 bps independent CSPRNG (diff 3 bps, allowed 60)
+  [PASS] 13 key space     700,000 round indices across 7 magnitude windows, 0 collisions
+  [INFO] 14 weight        50 files; page 97,534 B raw / 28,872 B gzip
+  => PASS
+
+==============================================================================
+SUMMARY
+==============================================================================
+  PASS  /home/eya/wtfjam/top3/02-handicap
+
+1/1 candidates PASS
+  exit code 0
+
+  Note on check 14: the weight line counts the built dist/ copy as well, because it was measured
+  after `npm run build` per the required order. On a clean pre-build tree the page files measure
+  63,099 B raw / 19,396 B gzip. It is an INFO line either way.
+  Note on check 8: og:image is the relative "og-image.png"; the canonical build input is
+  public/og-image.png and a byte-identical root copy exists so the page's own relative reference
+  resolves in the source tree as well. The harness reads it cleanly.
+
+--------------------------------------------------------------------------------
+7. Real headless-browser run of the built dist/
+--------------------------------------------------------------------------------
+Server : npm run build && PORT=8921 node tools/serve.mjs   (serves dist/)
+Driver : node tools/browser-check.mjs http://127.0.0.1:8921/   (DevTools Protocol; not --dump-dom)
+
+$ for u in / /src/app.js /src/styles.css /game/model.mjs /src/sdk/guest.mjs /game.manifest.json /og-image.png; do
+    curl -s -o /dev/null -w "%{http_code} %{content_type} $u\n" "http://127.0.0.1:8921$u"; done
+200 text/html; charset=utf-8 /
+200 text/javascript; charset=utf-8 /src/app.js
+200 text/css; charset=utf-8 /src/styles.css
+200 text/javascript; charset=utf-8 /game/model.mjs
+200 text/javascript; charset=utf-8 /src/sdk/guest.mjs
+200 application/json; charset=utf-8 /game.manifest.json
+200 image/png /og-image.png
+
+page      : HANDICAP — back the winner of a position you are dealt
+render    : 18 sockets (12 pins), 6 payline bands
+host      : HOST: standalone demo  wallet WALLET: n/a  ::  MODEL: handicap v1 ok
+pick      : clicked SECOND -> FIRST.on=false SECOND.on=true
+
+round 1 result : NO RETURN — FIRST WINS You backed SECOND. Grundy = 2 (XOR of 0, 1, 3), so first wins
+                 under perfect play. Branching 9 -> VOL 4.
+round 1 engine : ROW A ▮▯▯▯▯▮ G(33) 0 ROW B ▮▯▯▮▯▮ G(41) 1 ROW C ▮▯▮▮▯▯ G(13) 3 GRUNDY XOR of the
+                 three rows 2 PERFECT PLAY FIRST WINS BRANCHING legal moves 9 VOLATILITY TIER
+                 VOL 4 / 5 PRICE FIRST 1.2639x PRICE SECOND 3.8252x PAYOUT backing SECOND 0.0000x
+round 1 board  : word 0x9cda61bc…f2b8b6 | board 55905
+round 1 source : source: standalone CSPRNG deal
+
+assert    : settled=true grundy=true branching=true payout=true dirty=false
+screenshot: docs/browser-round.png (89999 B)
+
+round 2 result : PAID 3.8252x — SECOND WINS You backed SECOND. Grundy = 0 (XOR of 3, 1, 2), so second
+                 wins under perfect play. Branching 9 -> VOL 4.
+round 2 board  : word 0xb4c407d3…1cbc13 | board 50183
+
+BROWSER CHECK PASS  (http://127.0.0.1:8921/)
+  page loads; UI renders; pick works; DEAL runs; round resolves with winner/Grundy/
+  branching/payout; dealing again produced a new round.
+
+  What was clicked and seen: clicked #pickSecond (the FIRST/SECOND control switched, SECOND.on=true,
+  FIRST.on=false), clicked #deal; the page loaded the model and settled a round to rest with
+  "NO RETURN — FIRST WINS" and the engine panel showing Grundy 2, branching 9, VOL 4, and the
+  SECOND-side payout 0.0000x. Clicked #deal again; a new word dealt SECOND winning and the page paid
+  "PAID 3.8252x" (the tier-3 SECOND-side price), and the board changed 55905 -> 50183, so the second
+  deal is a new round, not a repaint. Both the loss and the win path were exercised.
+
+--------------------------------------------------------------------------------
+8. Model behaviour — unchanged
+--------------------------------------------------------------------------------
+game/model.mjs is behaviourally identical to the verified jam-candidates/handicap/model.mjs. The
+only edit was a comment path (`reports/architecture.md` -> `docs/architecture.md`); no exported
+value, function, table, constant or arithmetic changed. Confirmation:
+  - tests/model.test.mjs (imports ../game/model.mjs) passes 13/13 with the SAME assertions, including
+    the exact RTP over all 2^18 boards and both-sides-within-1-bp;
+  - tools/enumerate.mjs reproduces the same tier counts and FIRST/SECOND = 9500 bps;
+  - the harness reads the same SLUG, BANDS, EXPECTED_RTP_BPS and measures ~9500 bps from CSPRNG
+    words the model does not control.
+
+--------------------------------------------------------------------------------
+9. Boundaries / UNPROVEN — CORRECTED in Wave 3 (see the Wave 3 section at the end)
+--------------------------------------------------------------------------------
+- Embed (host) path — **PASS**. No longer unproven. The SDK's production-faithful host harness
+  mounted the game in the iframe, a wager was placed through the bridge, and the session settled:
+  mounted=true, wageredOnChain=true, sawSettle=true, sessions 20 -> 21
+  (research/host-embed-report.json, copied to docs/host-embed.json). This is the local simulator
+  host, NOT the production Chain.wtf host; production-host embedding stays EXTERNAL BLOCKED
+  (docs/testnet.md).
+- Contract runtime on an EVM — **PASS on the local simulator**. No longer unproven. The contract was
+  deployed at block 21 (deploy tx 0x5e7a8868…a72319, gasUsed 471895) with 21 sessions settled and 21
+  unique VRF fulfilment txs (research/chain-evidence.json); 20 re-settled rounds showed 0 stuck and
+  0 parity failures, and a max-payout eth-call returned the exact top payout inside the committed cap
+  (docs/chain-proof.json). Deployment gas IS measured (471895); the gas of an individual *settlement*
+  remains UNPROVEN. The runtime is NOT proven against the production chain (EXTERNAL BLOCKED).
+- Sound and narrow-viewport layout — **still NOT TESTED (UNPROVEN)**: headless Chrome has no audio
+  device, and only a desktop viewport was driven.
+- Public HTTPS deployment — **PASS**. No longer unproven. https://chain-jam-handicap.vercel.app is
+  READY, serves every asset 200 with the expected content type, stays iframe-embeddable (no
+  X-Frame-Options / CSP frame-ancestors), and a real headless browser ran a standalone round on it to
+  `PAID 1.2325x — FIRST WINS` with no hang (research/public-deploy-top3.md; docs/standalone.md).
+  Production-chain deployment remains EXTERNAL BLOCKED (docs/testnet.md).
+- The novelty claim is a judgement about the field, not a measurement (docs/security.md §9) — still
+  a judgement, not a measurement.
+================================================================================
+WAVE 3 — REAL CHAIN + HOST EMBED + PUBLIC HTTPS (2026-09-27)
+================================================================================
+Phase : FINAL BUILD-COMPLETION, Wave 3B (evidence capture; no re-engineering).
+Every figure in this section was produced by a command run in this tree on 2026-09-27, or is quoted
+from a named coordinator evidence file. Nothing is inferred; UNPROVEN is written where nothing was
+measured. The Wave-2 findings above stand unless an explicit correction follows.
+
+Node : v26.10.0      Commands run from /home/eya/wtfjam/top3/02-handicap and /home/eya/wtfjam.
+
+--------------------------------------------------------------------------------
+3.1 npm run build && npm test && npm run check      (verbatim)
+--------------------------------------------------------------------------------
+
+> handicap@1.0.0 build
+> node tools/build.mjs
+
+build: dist/ assembled
+       882  dist/_headers
+     11159  dist/game/model.mjs
+      5932  dist/game/README.md
+       873  dist/game.manifest.json
+      4128  dist/index.html
+     15241  dist/og-image.png
+     14332  dist/src/app.js
+     26836  dist/src/sdk/guest.mjs
+      6644  dist/src/styles.css
+       232  dist/vercel.json
+
+10 files, 86259 bytes raw
+
+> handicap@1.0.0 test
+> node --test tests/model.test.mjs tests/contract.test.mjs
+
+✔ contract is MIT and pinned to the required compiler line (2.847433ms)
+✔ contract implements the ICasinoGameV2 surface (0.30842ms)
+✔ interface declares the session enum and the context/step shapes (0.125587ms)
+✔ there is no constructor and every handler is pure or view (0.493203ms)
+✔ onPlayerAction reverts (the manifest advertises submitAction: false) (0.520656ms)
+✔ quoteForfeitPayout returns 0 (nothing is cashable mid-round) (0.275125ms)
+✔ reserve discipline: start commits the worst case, settle releases nothing (1.047419ms)
+✔ MAX_PRICE_BPS equals the largest price field on either side of the book (0.654426ms)
+✔ payout is the single floor-divided source of truth and the RTP constant is present (0.415692ms)
+✔ the committed side is read back from gameState (finding S2 fixed) (0.298038ms)
+✔ the row tables in the contract are the model tables (0.444141ms)
+✔ SLUG and RTP declaration (0.908424ms)
+✔ BANDS tile the stat space with no gap, no overlap and non-decreasing multipliers (0.25012ms)
+✔ bandOf agrees with BANDS at both edges of every band (0.143634ms)
+✔ row Grundy table equals an independently written brute-force search (2.505115ms)
+✔ worked examples: full row, 4-pin run, empty board, tier boundaries (1.8951ms)
+✔ the winner is exactly "the XOR of the row Grundy values is non-zero" (22.867315ms)
+✔ moves/tier boundaries (78.918017ms)
+✔ contract price tables match model.mjs band-for-band (0.711705ms)
+✔ contract carries the model table constants verbatim (0.522719ms)
+✔ makeRng returns distinct 32-byte words across magnitudes up to 2^52 (581.004945ms)
+✔ makeRng is a pure counter function with no float drift (0.440148ms)
+✔ exact RTP across the whole 2^18 board space matches the declaration (75.512342ms)
+✔ both sides of the book return the same RTP (within 1 bp) (73.698572ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 963.946932
+
+> handicap@1.0.0 check
+> node tools/check.mjs
+
+  ok    dist/game/model.mjs
+  ok    dist/src/app.js
+  ok    dist/src/sdk/guest.mjs
+  ok    game/model.mjs
+  ok    src/app.js
+  ok    src/sdk/guest.mjs
+  ok    tests/contract.test.mjs
+  ok    tests/model.test.mjs
+  ok    tools/browser-check.mjs
+  ok    tools/build.mjs
+  ok    tools/check.mjs
+  ok    tools/enumerate.mjs
+  ok    tools/serve.mjs
+
+13 files parsed, 0 failed
+
+Note: `dist/vercel.json` is now 232 bytes (headers only) — it was 474 B in Wave 2, when it still
+carried the invalid `$comment` key that failed the Vercel deploy (see §3.7).
+
+--------------------------------------------------------------------------------
+3.2 node jam-candidates/tools/verify-candidate.mjs top3/02-handicap      (verbatim)
+--------------------------------------------------------------------------------
+
+==============================================================================
+02-handicap
+==============================================================================
+  [PASS]  1 structure     5 required files present
+  [PASS]  2 syntax        13 JS files parse
+  [PASS]  3 manifest      valid (gameId=HandicapGame, mode=full-iframe)
+  [PASS]  4 widget tag    widget tag present; page loads the verified model
+  [PASS]  5 hygiene       17 shipped files; 2 self-generated image(s); 0 banned strings; 0 third-party binaries
+  [PASS]  6 framing       no framing blocker in any shipped host config
+  [INFO]  7 ref param     does not read the query string — ?ref=chainjam is inherently tolerated
+  [INFO]  8 og:image      og:image present: og-image.png
+  [PASS]  9 model loads   SLUG=handicap, declared 9500 bps
+  [PASS] 10 paytable      6 bands, 0..15, monotonic, boundaries exact
+  [PASS] 11 rtp truth     9499 bps measured vs 9500 declared (CI +/-7, allowed +/-30 bps), stat 0..12
+  [PASS] 12 rtp sampler   9502 bps via makeRng vs 9497 bps independent CSPRNG (diff 5 bps, allowed 60)
+  [PASS] 13 key space     700,000 round indices across 7 magnitude windows, 0 collisions
+  [INFO] 14 weight        50 files; page 97,534 B raw / 28,872 B gzip
+  => PASS
+
+==============================================================================
+SUMMARY
+==============================================================================
+  PASS  top3/02-handicap
+
+1/1 candidates PASS
+
+--------------------------------------------------------------------------------
+3.3 node jam-candidates/tools/verify-exact-rtp.mjs top3/02-handicap      (verbatim)
+--------------------------------------------------------------------------------
+
+== independent exact-RTP verification (brute force, not the candidate's own enumeration) ==
+
+candidate     check                      declared        measured            states  note
+------------------------------------------------------------------------------------------------------------------------------------
+[  ok ] 02-handicap   top 24 bits (232..255)     declared  9500  measured  9499.9911  over   16,777,216 states  EXACT, 10 distinct stats
+
+== flood-exe: NOT enumerable (keccak over the full 256-bit word) ==
+   Deferred to verify-candidate.mjs (2M-round CSPRNG + 2M-round sampler). Its 94.717% was
+   cross-checked three ways in Wave 3/4 (10M script, 200M independent, CSPRNG) and by 2,670+
+   live settled rounds. This is the only Monte Carlo RTP in the set.
+
+exact re-derivations performed: 1, failed: 0
+
+real	0m3.214s
+user	0m3.163s
+sys	0m0.069s
+
+This is the coordinator's INDEPENDENT exact re-derivation, not this project's own enumerator: it
+walks all 2^24 = 16,777,216 24-bit words (bits 232..255) and re-derives 9499.9911 bps against the
+declared 9500 (exact, 10 distinct stats). Separately, `docs/chain-proof.json` was re-compared to the
+`handicap` slice of `jam-candidates/tools/chain-proof-all.json` and is byte-identical — it was NOT
+rewritten.
+
+--------------------------------------------------------------------------------
+3.4 Local simulator chain (chain id 31337) — deployed and settled
+    Evidence: research/chain-evidence.json; jam-candidates/tools/chain-proof-all.json
+              (== docs/chain-proof.json)
+--------------------------------------------------------------------------------
+
+Deployment (research/chain-evidence.json → games.HandicapGame):
+  contract address         0x8a791620dd6260079bf849dc5567adc3f2fdc318
+  chain id                 31337
+  deploy tx                0x5e7a8868a6291a81a5f8c243e8114d5c4cf194f7a0f3760dc11ee85ac9a72319
+  deploy block             21
+  deploy from              0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+  deploy gasUsed           471895
+  sessionsSettled          21
+  uniqueFulfilmentTxs      21
+  first session id         21
+  first open tx            0x55f50886f216b9e479683585ae6a84dc5a1ce2f47e8d6662c474b402751fdd3a
+  first settle tx          0x50001c2ef973b897b325e0857d3801c4122da0a0866078e07aca75f18fa15574
+  first payoutWei          1263900000000000000
+  first randomness         0x2d84b1866045ab1ce0eb7458b664f5258e9c39b327eeb494e959b3d411534aa8
+
+Re-settled round set (docs/chain-proof.json):
+  20 real settled rounds; stuck 0; parityFails 0; declaredBps 9500. The realised value over these
+  20 rounds was 112.5135% — a small-sample figure, NOT an RTP claim.
+  Tier histogram over the 20 rounds: 1.2639x x5, 1.226x x5, 1.2325x x5, 1.0771x x1, 1.4068x x2,
+  0x (no return) x2.
+  3 VRF fulfilment txs and 3 request ids recorded, e.g.
+    fulfilment 0x55f50886f216b9e479683585ae6a84dc5a1ce2f47e8d6662c474b402751fdd3a
+    requestId  0x66499089192c327b90ce7766579d72502a104726104a440322841eae0fa16e12
+  Max-payout path proved by eth_call ("topPath"):
+    word     0x20804c374156f981046cae9a0467d88bad6330edfef76363d893d2b38757a2a2
+    stat 12, mult 1.4068, payoutWei 1406800000000000000, nextPhase 3,
+    capWei 8049200000000000000, withinCap true
+  First three rounds, on-chain payout == model.outcome(randomness), parity true:
+    r1 session 21 block 68  1.2639x  payoutWei 1263900000000000000
+    r2 session 22 block 70  1.2639x  payoutWei 1263900000000000000
+    r3 session 23 block 72  1.226x   payoutWei 1226000000000000000
+
+This is the LOCAL simulator — a real EVM on chain id 31337 with the vendored VRF router and real
+ECVRV proofs, the jam's prescribed environment. It is NOT the production Chain.wtf chain.
+
+--------------------------------------------------------------------------------
+3.5 Host embed — a real wager placed and settled through the bridge
+    Evidence: research/host-embed-report.json (the `02-handicap` entry is copied verbatim to
+    docs/host-embed.json)
+--------------------------------------------------------------------------------
+
+  slug              02-handicap
+  address           0x8a791620dd6260079bf849dc5567adc3f2fdc318
+  mounted           true
+  clicked           "clicked BET (enabled after 0s)"
+  sawSettle         true
+  wageredOnChain    true
+  guestChanged      true
+  sessionsBefore    20
+  sessionsAfter     21
+  ok                true
+
+The guest was mounted in the host iframe, "BET" was clicked once the wallet became ready, and the
+session counter moved 20 -> 21 with the guest rendering a settled result (a guest that merely fell
+back to its own demo cannot pass this assertion). This is the SDK's production-faithful LOCAL host
+harness, NOT the production Chain.wtf host. consoleErrors were three benign React-side
+"Invalid DOM property" warnings (flood-opacity, color-interpolation-filters, stop-color); there was
+no 404 and no functional error.
+
+--------------------------------------------------------------------------------
+3.6 Public HTTPS + standalone browser run
+    Evidence: research/public-deploy-top3.md
+--------------------------------------------------------------------------------
+
+  production URL  https://chain-jam-handicap.vercel.app
+  deployment id   dpl_DWwxBWquMpkygHfZYkGC7wpv2rXV
+  state           READY
+
+External probe (fetched from the coordinator's machine, not from localhost):
+  GET /                     200 text/html; charset=utf-8
+  GET /game/model.mjs       200 application/javascript; charset=utf-8
+  GET /src/app.js           200 application/javascript; charset=utf-8
+  GET /game.manifest.json   200 application/json; charset=utf-8
+  manifest headers          access-control-allow-origin: *, cache-control: public, max-age=300
+  X-Frame-Options / CSP frame-ancestors   absent (the page stays iframe-embeddable)
+  widget tag                jam.chain.wtf/widget.js present in the body
+
+Standalone real-browser run (headless Chrome at the production URL, no host): page loads; FIRST
+picked; DEAL resolved to `PAID 1.2325x — FIRST WINS`; the widget badge ("CHAIN JAM VOL.1") rendered.
+The page fell through to its standalone demo with NO HANG (the never-settling `connection.promise`
+guard works on the real network). No separate cold-load TTI number was measured; what was observed
+is a cold load that resolves to a settled round, not a timing figure.
+
+--------------------------------------------------------------------------------
+3.7 Hosting-config fix (a real submission blocker, removed)
+--------------------------------------------------------------------------------
+Vercel REJECTED the first deploy of this project:
+
+  Error: Invalid vercel.json - should NOT have additional property `$comment`. Please remove it.
+
+The shipped `public/vercel.json` carried a `$comment` key; Vercel validates `vercel.json` with
+`additionalProperties: false`, so the key made the config invalid and the deploy failed outright.
+The coordinator removed `$comment` from `public/vercel.json`; the file now contains `headers` only
+(`dist/vercel.json` is 232 B, down from 474 B). The explanatory note is kept where it is actually
+read: `public/_headers` retains the full comment. Evidence:
+research/public-deploy-top3.md ("The defect this deployment surfaced (and fixed)"). The fix neither
+added nor removed a framing header — `public/vercel.json` sets CORS on `/game.manifest.json` only.
+
+--------------------------------------------------------------------------------
+3.8 Corrected status of the Wave-2 §9 ("UNPROVEN / boundaries") bullets
+--------------------------------------------------------------------------------
+The §9 bullets above are edited in place to the state below; this table is the summary.
+
+| Wave-2 bullet                                | Wave-3 status |
+|----------------------------------------------|---------------|
+| embed (host) path not exercised              | **PASS** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (docs/host-embed.json) |
+| contract runtime not executed on an EVM      | **PASS on the local simulator** — deployed (gasUsed 471895) + 21 sessions settled + 0 stuck / 0 parity fails (docs/chain-proof.json). Deploy gas measured; per-settlement gas still UNPROVEN |
+| sound / narrow-viewport                      | **still UNPROVEN** — not tested |
+| no public HTTPS deployment                   | **PASS** — https://chain-jam-handicap.vercel.app, READY, standalone round to `PAID 1.2325x` |
+| production-chain deployment                  | **EXTERNAL BLOCKED** — unchanged (docs/testnet.md) |
+| novelty claim is not a measurement           | unchanged — still a judgement, not a measurement |
+================================================================================
+
+================================================================================
+WAVE 4 — ADVERSARIAL CLOSEOUT + CLEAN CHECKOUT (2026-09-27)
+================================================================================
+Phase : HOSTILE ADVERSARIAL CLOSEOUT (independent reviewer; did not build the project).
+Full report: docs/adversarial.md. Every figure below was produced by a command run in this tree on
+2026-09-27 or is quoted from a named evidence file. Nothing is inferred; UNTESTED is written where
+nothing was measured. Scratch scripts lived under /tmp/wave4b/ and were not written into the project.
+Not run (out of scope): chain-probe.mjs, verify-host-embed.mjs, the local node, the Vite harness, git.
+The only server started was the project's own `npm run serve` on port 8921, stopped in the same call.
+
+--------------------------------------------------------------------------------
+4.1 Attack results
+--------------------------------------------------------------------------------
+  1 exact RTP, both sides, independent enumeration .... FALSIFIED (doc figures wrong; CORRECTED)
+       exact FIRST  = 9499.991058 bps  -> documented 9499.9911 (was 9499.9956)
+       exact SECOND = 9500.010906 bps  -> documented 9500.0109 (was 9500.0037)
+       gap 0.019848 bps; tier counts c0/c1 and all ten prices independently reproduced;
+       declared EXPECTED_RTP_BPS = 9500 correct; per-tier EV within 0.30 bps of 9500.
+       The project's own enumerator prints 94.9999% / 95.0001%, agreeing with the correction.
+  2 model<->contract parity, independent unpack + 2^24 brute force ... NOT FALSIFIED
+       64/64 Grundy nibbles, 64/64 move nibbles, all 10 price fields, MAX_PRICE_BPS=80492;
+       0 mismatches over all 2^24 top-bit words (Grundy/branching/tier/price).
+  3 _committedPick (:171 fix) divergence / stale / uninitialised ... NOT FALSIFIED
+       host lifecycle -> gameState wins; fallback only without a 32-byte state; no reachable divergence.
+  4 payout cap ... NOT FALSIFIED
+       maxPayout == escrowedStake + reservedProfit exactly; reserve uses the tier-independent
+       global MAX_PRICE_BPS, so no tier/side can break it.
+  5 framing / manifest / shipped-dist hygiene ... NOT FALSIFIED (all checks clean)
+  6 doc-truth hunt ... 2 claims FALSIFIED and CORRECTED, 1 un-fixable (edit scope), the rest verified
+  7 clean-checkout build/test/check ... PASS (exit 0)
+  8 secret scan (all files incl. dist) ... NOT FALSIFIED (no secrets; all 64-hex classified)
+
+Corrections applied (proven-wrong claims only), all inside README.md / docs/**:
+  README.md (RTP table), docs/rtp.md §1, docs/rtp-proof.md §2.4, docs/build-report.md:
+      9499.9956 -> 9499.9911  and  9500.0037 -> 9500.0109
+  README.md:63: `npm test` comment corrected to name BOTH test files.
+NOT corrected (outside the README.md + docs/** edit authority): game/README.md:103-104 carries the same
+wrong figures and is copied into dist/game/README.md. Recorded in docs/adversarial.md for the
+coordinator to fix.
+
+--------------------------------------------------------------------------------
+4.2 Clean checkout — `npm run build && npm test && npm run check` (verbatim, EXIT=0)
+--------------------------------------------------------------------------------
+Source tree copied to /tmp/clean-02-handicap excluding dist/, node_modules/ and .git/; no
+`npm install` was run and no node_modules existed. This is the exact captured output:
+
+$ npm run build && npm test && npm run check
+
+> handicap@1.0.0 build
+> node tools/build.mjs
+
+build: dist/ assembled
+       882  dist/_headers
+     11159  dist/game/model.mjs
+      5932  dist/game/README.md
+       873  dist/game.manifest.json
+      4128  dist/index.html
+     15241  dist/og-image.png
+     14332  dist/src/app.js
+     26836  dist/src/sdk/guest.mjs
+      6644  dist/src/styles.css
+       232  dist/vercel.json
+
+10 files, 86259 bytes raw
+
+> handicap@1.0.0 test
+> node --test tests/model.test.mjs tests/contract.test.mjs
+
+✔ contract is MIT and pinned to the required compiler line (1.754002ms)
+✔ contract implements the ICasinoGameV2 surface (0.654206ms)
+✔ interface declares the session enum and the context/step shapes (0.212631ms)
+✔ there is no constructor and every handler is pure or view (0.413787ms)
+✔ onPlayerAction reverts (the manifest advertises submitAction: false) (0.538987ms)
+✔ quoteForfeitPayout returns 0 (nothing is cashable mid-round) (0.212908ms)
+✔ reserve discipline: start commits the worst case, settle releases nothing (0.18597ms)
+✔ MAX_PRICE_BPS equals the largest price field on either side of the book (0.903864ms)
+✔ payout is the single floor-divided source of truth and the RTP constant is present (0.266571ms)
+✔ the committed side is read back from gameState (finding S2 fixed) (0.281064ms)
+✔ the row tables in the contract are the model tables (0.261748ms)
+✔ SLUG and RTP declaration (0.862027ms)
+✔ BANDS tile the stat space with no gap, no overlap and non-decreasing multipliers (0.181785ms)
+✔ bandOf agrees with BANDS at both edges of every band (0.111444ms)
+✔ row Grundy table equals an independently written brute-force search (3.648431ms)
+✔ worked examples: full row, 4-pin run, empty board, tier boundaries (0.258524ms)
+✔ the winner is exactly "the XOR of the row Grundy values is non-zero" (32.821345ms)
+✔ moves/tier boundaries (69.135856ms)
+✔ contract price tables match model.mjs band-for-band (1.08913ms)
+✔ contract carries the model table constants verbatim (0.525073ms)
+✔ makeRng returns distinct 32-byte words across magnitudes up to 2^52 (534.048519ms)
+✔ makeRng is a pure counter function with no float drift (0.403916ms)
+✔ exact RTP across the whole 2^18 board space matches the declaration (66.894373ms)
+✔ both sides of the book return the same RTP (within 1 bp) (70.14502ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 942.445984
+
+> handicap@1.0.0 check
+> node tools/check.mjs
+
+  ok    dist/game/model.mjs
+  ok    dist/src/app.js
+  ok    dist/src/sdk/guest.mjs
+  ok    game/model.mjs
+  ok    src/app.js
+  ok    src/sdk/guest.mjs
+  ok    tests/contract.test.mjs
+  ok    tests/model.test.mjs
+  ok    tools/browser-check.mjs
+  ok    tools/build.mjs
+  ok    tools/check.mjs
+  ok    tools/enumerate.mjs
+  ok    tools/serve.mjs
+
+13 files parsed, 0 failed
+EXIT=0
+
+--------------------------------------------------------------------------------
+4.3 Fresh build == committed dist
+--------------------------------------------------------------------------------
+$ diff -rq top3/02-handicap/dist /tmp/clean-02-handicap/dist
+IDENTICAL
+(The committed dist/ is byte-identical to a fresh `npm run build`, so it is not stale.)
+
+--------------------------------------------------------------------------------
+4.4 Untested by this wave (stated plainly)
+--------------------------------------------------------------------------------
+- Deployed-contract runtime, the host-embed path against the production host, production-chain
+  deployment, sound, narrow-viewport layout, and per-settlement gas: UNTESTED (out of scope / no
+  environment). The deployment facts in §3.4 are read from docs/chain-proof.json, not re-run.
+- Vercel deployment id dpl_DWwxBWquMpkygHfZYkGC7wpv2rXV: not observable over HTTP — UNTESTED. The
+  public URL itself was re-probed and is live (200, text/html; .mjs as application/javascript;
+  manifest application/json + access-control-allow-origin: *; no framing header).
+================================================================================
+
+
+================================================================================
+WAVE 3 — REPAIR + LIVE VALIDATION
+================================================================================
+Date   : 2026-09-27
+Target : https://chain-jam-handicap.vercel.app/   (production alias)
+Method : real Chrome over CDP (Input.dispatchMouseEvent; document.elementFromPoint).
+Scope  : front-end (index.html, src/app.js, src/styles.css) + tests/ only.
+Reports: research/wave3-handicap-repair.md , research/wave3-handicap-shots/ (before/after).
+
+--------------------------------------------------------------------------------
+D2 — disabled #bet indistinguishable from live #deal  -> FIXED
+--------------------------------------------------------------------------------
+BEFORE (computed 1280x800, live):
+  #bet  disabled=true  bg linear-gradient(rgb(217,247,219), rgb(126,224,129))  opacity 1  filter none  cursor default  no title
+  #deal disabled=false bg linear-gradient(rgb(217,247,219), rgb(126,224,129))  opacity 1  filter none  cursor pointer
+AFTER  (live, deployed bytes):
+  #bet  disabled=true  bg linear-gradient(rgb(204,210,220), rgb(154,163,177))  opacity 0.5  filter grayscale(0.9) saturate(0.25)  cursor not-allowed  title="BET needs the Chain.wtf host. Standalone runs a free demo — use DEAL."
+  #deal disabled=false bg linear-gradient(rgb(217,247,219), rgb(126,224,129))  opacity 1    filter none  cursor pointer
+CODE: src/styles.css:117-125 (button[disabled], button.go[disabled]); index.html:66-67; src/app.js:249-250,327,352.
+
+--------------------------------------------------------------------------------
+D3 — WAGER dead in standalone and unexplained  -> FIXED
+--------------------------------------------------------------------------------
+BEFORE: #wager disabled, opacity 1, filter none, cursor default, title null, aria-disabled null;
+        label "WAGER"; page never said why.
+AFTER : #wager disabled, opacity 0.85, filter grayscale(1), cursor not-allowed, aria-disabled="true",
+        title="Standalone demo — no wager is placed. BET needs the Chain.wtf host; use DEAL for a free demo round.";
+        slip caption visibly reads "Back a side before the deal — demo, no wager".
+        (Behaviour unchanged: no money, no wager.)
+CODE: index.html:58,64-65; src/app.js:324-327,350-354.
+
+--------------------------------------------------------------------------------
+D4 — primary flow below the fold at a phone viewport  -> FIXED
+--------------------------------------------------------------------------------
+BEFORE 390x844: docH 1181; 10/11 controls below the fold (pickFirst,pickSecond,wager,bet,deal,note,
+                result,hostcell,walletcell,paritycell).
+AFTER  390x844: docH 1202; primary flow ABOVE the fold — pickFirst/pickSecond top 628, wager 666,
+                bet/deal 665, result 704; only display-only status lines remain below.
+Desktop 1280x800 unchanged: docH 800; pickFirst y=367, wager x=874 y=368, deal y=404 (identical to before).
+CODE: src/styles.css:158-166 ( @media (max-width: 640px) : .col-right{display:contents}; .slip{order:1} ).
+
+--------------------------------------------------------------------------------
+D6 — fixed Chain Jam widget badge intercepts real clicks  -> FIXED
+--------------------------------------------------------------------------------
+BEFORE (strong viewport x scroll sweep, real elementFromPoint): 26 interceptions
+  320x568: #pickSecond x2, #wager x1, #bet x2
+  360x640: #pickSecond x2, #bet x2, #deal x3
+  390x700: #bet x2, #deal x5
+  390x844: #bet x2, #deal x5
+  768x1024, 1280x800: none
+AFTER  (same sweep, live): 0 interceptions across all six viewports.
+  Real CDP click at 320x568 with the control scrolled into the badge band:
+    #deal       elementFromPoint -> #deal       -> board changed
+    #pickSecond elementFromPoint -> #pickSecond -> pick flipped
+CODE: src/styles.css:106 (.slip .buttons { position: relative; z-index: 2147483647; })
+      > widget badge z-index 2147483000. Widget left untouched and still shipped.
+
+--------------------------------------------------------------------------------
+GATES (deployed bytes)
+--------------------------------------------------------------------------------
+$ npm run build    -> 10 files, 89898 bytes raw
+$ npm test         -> tests 30 / pass 30 / fail 0   (adds tests/ui.test.mjs)
+$ npm run check    -> 15 files parsed, 0 failed
+$ npm run test:browser -> BADGE OVERLAP PASS (0 intercepts at 320x568,360x640,390x700,390x844,
+                          768x1024,1280x800)
+
+$ for f in / /game/model.mjs /src/app.js /src/styles.css: live-vs-dist sha256
+  /                  MATCH  0f40f80e2e95
+  /game/model.mjs    MATCH  cfaf431b4cfd   (UNCHANGED — inherited model left verbatim)
+  /src/app.js        MATCH  03c0ee698152
+  /src/styles.css    MATCH  1d68786d3c55
+
+$ vercel deploy --prod --yes --scope xkq   (from the linked public-deploy/chain-jam-handicap)
+  Production  https://chain-jam-handicap-98fc6op3u-xkq.vercel.app
+  Aliased     https://chain-jam-handicap.vercel.app
+  Ready in 9s
+
+$ node jam-candidates/tools/verify-host-embed.mjs 02-handicap   -> PASS
+  iframe mounted, BET enabled; settled sessions 22 -> 23 (wagered through the host: true);
+  settled marker + text change reached the guest ("settled on-chain session 67").
+  (The harness-served games/handicap copy was synced to the new dist so the test ran the new bytes.)
+
+$ node jam-candidates/tools/verify-candidate.mjs top3/02-handicap   -> PASS (14/14 checks)
+  RTP 9504 bps measured vs 9500 declared; sampler diff 2 bps; key space 0 collisions;
+  manifest valid (gameId=HandicapGame, mode=full-iframe).
+
+--------------------------------------------------------------------------------
+LIVE INTERACTION MATRIX (real CDP clicks)
+--------------------------------------------------------------------------------
+Control        Visible Enabled Click works State changes            Network           Result
+#pickFirst     yes     yes     yes         pick highlight (#pf.on)  none              works
+#pickSecond    yes     yes     yes         pick highlight (#ps.on)  none              works
+#wager         yes     no      no          none                     none              inert by design; now labelled demo
+#bet           yes     no      no          none                     none              inert by design; now clearly disabled
+#deal          yes     yes     yes         new word + board + result none             works
+.tab BOARD     yes     yes     no          none                     none              no-op (no handler; pre-existing)
+.tab ENGINE    yes     yes     no          none                     none              no-op (no handler; pre-existing)
+.tab RULES     yes     yes     no          none                     none              no-op (no handler; pre-existing)
+#chain-jam-badge yes   yes     yes(link)   none in-page              outbound nav      works (jam.chain.wtf/?ref=widget, _blank)
+
+Display-only (not interactive): #board #engine #bands #rtp #note #result #boardmeta #source
+                                 #hostcell #walletcell #paritycell .foot
+Console: pageErrors [] ; only error is favicon.ico 404 (cosmetic).
+
+UNFIXED / OUT OF SCOPE: the BOARD/ENGINE/RULES tabs remain inert (no handler); pick does not
+re-price until the next DEAL (highlight-only). Production Chain.wtf host embed remains EXTERNAL
+BLOCKED; only the local SDK simulator (chain 31337) is an entrant environment.

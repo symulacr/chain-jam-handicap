@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "gameId": "HandicapGame",
+  "apiVersion": 1,
+  "defaultLocale": "en",
+  "locales": {
+    "en": {
+      "name": "HANDICAP",
+      "description": "Back FIRST or SECOND before the deal. One word from Chain's VRF deals a pin board; the contract computes its exact Sprague-Grundy value, so the winner under perfect play is settled before you see it. The payout is graded by the position's volatility, and the book is priced on both sides."
+    }
+  },
+  "presentation": {
+    "mode": "full-iframe",
+    "hostPanels": {
+      "openSession": false,
+      "history": false,
+      "status": false
+    }
+  },
+  "capabilities": {
+    "openSession": true,
+    "submitAction": false,
+    "forfeitExpiredSession": false,
+    "cancelStuckRandomness": true,
+    "resize": true
+  },
+  "assets": {
+    "iconUrl": "og-image.png",
+    "coverUrl": "og-image.png"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "handicap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HANDICAP - back the winner of an impartial position dealt by Chain's VRF, settled on the exact Sprague-Grundy value.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node --test tests/model.test.mjs tests/contract.test.mjs tests/ui.test.mjs tests/evm.test.mjs",
+    "test:browser": "node tests/badge-overlap.browser.mjs",
+    "check": "node tools/check.mjs",
+    "enumerate": "node tools/enumerate.mjs",
+    "serve": "node tools/serve.mjs"
+  }
+}

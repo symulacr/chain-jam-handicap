@@ -1,0 +1,170 @@
+  :root {
+    --chrome: #ccd2dc;
+    --chrome-hi: #f2f5fa;
+    --chrome-lo: #6d7482;
+    --panel: #2b3140;
+    --panel-2: #1d2230;
+    --amber: #ffc24a;
+    --green: #7ee081;
+    --red: #ff7a6b;
+    --ink: #10141c;
+    --paper: #e9edf4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #6f7787;
+    background-image:
+      linear-gradient(90deg, rgba(0,0,0,.10) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(0,0,0,.10) 1px, transparent 1px);
+    background-size: 8px 8px;
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    padding: 14px;
+  }
+  .shell { width: 100%; max-width: 900px; margin: 0 auto; }
+  .window {
+    background: var(--chrome);
+    border: 2px solid;
+    border-color: var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi);
+    box-shadow: 0 0 0 1px #3b4250, 3px 3px 0 rgba(0,0,0,.35);
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 6px;
+    background: linear-gradient(90deg, #2b3140, #48536b 70%, #2b3140);
+    color: #eef2f8;
+    font-weight: 700; letter-spacing: .06em;
+    border-bottom: 2px solid #3b4250;
+  }
+  .titlebar .dot { width: 12px; height: 12px; background: var(--amber); border: 1px solid #7a5c10; }
+  .titlebar .spacer { flex: 1; }
+  .titlebar .box {
+    width: 18px; height: 16px; background: var(--chrome);
+    border: 2px solid; border-color: var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #2b3140; font-size: 10px; line-height: 1;
+  }
+  .tabstrip { display: flex; gap: 2px; padding: 6px 6px 0 6px; }
+  .tab {
+    padding: 3px 10px; background: #b9c1cd; color: #3b4250;
+    border: 2px solid; border-color: var(--chrome-hi) var(--chrome-lo) #ccd2dc var(--chrome-hi);
+    font-weight: 600; letter-spacing: .04em;
+    /* Wave 4: the tabs are real in-page links now, not dead chrome. */
+    text-decoration: none; cursor: pointer;
+  }
+  .tab:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+  .tab.on { background: var(--panel); color: var(--amber); border-bottom-color: var(--panel); }
+  /* the section a tab points at is outlined while its hash is the location */
+  .cab:target { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .body { padding: 8px; }
+  .cols { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; }
+  .col-left { flex: 1 1 300px; min-width: 280px; }
+  .col-right { flex: 1 1 320px; min-width: 280px; }
+  .cab {
+    background: #aab3c1;
+    border: 2px solid; border-color: #e8ecf4 #6d7482 #6d7482 #e8ecf4;
+    padding: 6px;
+  }
+  .cab h2 {
+    margin: 0 0 6px 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: #2b3140; border-bottom: 1px solid #6d7482; padding-bottom: 3px;
+  }
+  .statline { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; }
+  .slot td { padding: 1px 4px; }
+  /* board */
+  .board { background: var(--panel); padding: 10px; border: 2px solid; border-color: #5a6478 #141823 #141823 #5a6478; }
+  .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .row:last-child { margin-bottom: 0; }
+  .rowtag { width: 42px; color: #9fb0c8; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; }
+  .socket {
+    width: 30px; height: 30px;
+    background: #0d1119;
+    border: 2px solid;
+    border-color: #05070b #39435a #39435a #05070b;
+    position: relative;
+  }
+  .socket.pin::after {
+    content: ""; position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3cf, var(--amber) 55%, #a8741a);
+    box-shadow: 0 0 4px rgba(255,194,74,.8);
+  }
+  .socket.touched { outline: 2px solid var(--green); outline-offset: -2px; }
+  .engine { background: var(--panel-2); color: #cfe3ff; padding: 8px; border: 2px solid; border-color: #5a6478 #141823 #141823 #5a6478; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+  .engine .l { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dotted #33405a; }
+  .engine .l:last-child { border-bottom: 0; }
+  .engine .k { color: #8ea3c2; }
+  .engine .v { color: #e8f1ff; }
+  .engine .hi { color: var(--amber); font-weight: 700; }
+  .engine .ok { color: var(--green); font-weight: 700; }
+  .engine .no { color: var(--red); font-weight: 700; }
+  /* bet slip */
+  .slip { margin-top: 8px; background: var(--chrome); border: 2px solid; border-color: var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi); padding: 8px; }
+  .slip .cap { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #3b4250; margin-bottom: 6px; }
+  .buttons { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  /* D6: the fixed Chain Jam widget badge owns z-index 2147483000 (index.html loads
+     jam.chain.wtf/widget.js). Lift the whole bet bar above it so the badge can never sit
+     over — or intercept a real click on — FIRST/SECOND/WAGER/BET/DEAL at any viewport or
+     scroll position. The badge stays in the page; it simply cannot cover our controls. */
+  .slip .buttons { position: relative; z-index: 2147483647; }
+  button {
+    font: inherit; font-weight: 700; letter-spacing: .05em;
+    background: linear-gradient(180deg, #e6ebf3, #a9b3c2);
+    border: 2px solid; border-color: var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi);
+    padding: 6px 12px; color: #1b2130; cursor: pointer;
+  }
+  button:active:not([disabled]) { border-color: var(--chrome-lo) var(--chrome-hi) var(--chrome-hi) var(--chrome-lo); }
+  /* D2: a disabled control must be unmistakably inert — desaturated, dimmed and
+     not-allowed — so it can never be mistaken for a live one (BET/DEAL used to share
+     the exact same green gradient, opacity and filter). */
+  button[disabled] {
+    color: #6f7787;
+    cursor: not-allowed;
+    opacity: .5;
+    filter: grayscale(.9) saturate(.25);
+  }
+  button.pick.on { background: linear-gradient(180deg, #fff0c9, var(--amber)); color: #2b1c00; }
+  button.go { background: linear-gradient(180deg, #d9f7db, var(--green)); }
+  button.go[disabled] { background: linear-gradient(180deg, #ccd2dc, #9aa3b1); }
+  input[type=text], input[type=number] {
+    font: inherit; font-family: ui-monospace, Menlo, Consolas, monospace;
+    border: 2px solid; border-color: var(--chrome-lo) var(--chrome-hi) var(--chrome-hi) var(--chrome-lo);
+    background: #fff; padding: 5px 6px; width: 130px;
+  }
+  /* D3: the standalone WAGER field is inert by design (no host ⇒ no money). Say so
+     visually as well as in the label/title, so it does not read as broken. */
+  input[type=text]:disabled, input[type=number]:disabled {
+    background: #eef1f6; color: #6f7787; cursor: not-allowed; filter: grayscale(1); opacity: .85;
+  }
+  .result {
+    margin-top: 8px; padding: 8px; min-height: 44px;
+    background: var(--panel); color: var(--paper);
+    border: 2px solid #141823;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px;
+  }
+  .result .head { font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+  .result .sub { color: #9fb0c8; margin-top: 3px; }
+  .win .head { color: var(--green); }
+  .lose .head { color: var(--red); }
+  table.bands { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+  table.bands th, table.bands td { border: 1px solid #6d7482; padding: 2px 4px; text-align: left; }
+  table.bands th { background: #b9c1cd; }
+  .statusbar { display: flex; gap: 8px; margin-top: 8px; padding: 4px 6px; background: #b9c1cd; border: 2px solid; border-color: var(--chrome-lo) var(--chrome-hi) var(--chrome-hi) var(--chrome-lo); color: #2b3140; font-size: 11px; flex-wrap: wrap; }
+  .statusbar .cell { flex: 1 1 auto; white-space: nowrap; }
+  .note { color: #3b4250; font-size: 11px; margin-top: 6px; }
+  .foot { color: #d8dee8; font-size: 11px; margin: 10px 2px 2px; text-align: center; }
+  .hidden { display: none; }
+  /* D4: on a phone the two flex columns wrap into a long stack, pushing the bet slip
+     (FIRST/SECOND/WAGER/BET/DEAL) far below the fold. Flatten the right column into the
+     column stack and order the primary flow — board, then the bet slip, then the engine —
+     so the whole deal path is reachable without hunting. Desktop (>=641px) is untouched. */
+  @media (max-width: 640px) {
+    .cols { flex-direction: column; }
+    .col-left { flex: 1 1 auto; min-width: 0; width: 100%; }
+    .col-right { display: contents; }
+    .col-left { order: 0; }
+    .slip { order: 1; width: 100%; }
+    .col-right > .cab { order: 2; width: 100%; }
+  }

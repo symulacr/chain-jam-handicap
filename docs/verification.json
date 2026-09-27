@@ -1,0 +1,364 @@
+{
+  "slug": "02-handicap",
+  "verdict": "PASS",
+  "at": "2026-09-27T23:53:05.025Z",
+  "ops": {
+    "TRUTH_ROUNDS": 2000000,
+    "SAMPLER_ROUNDS": 2000000,
+    "KEY_ROUNDS": 100000
+  },
+  "checks": [
+    {
+      "name": " 1 structure",
+      "status": "PASS",
+      "detail": "5 required files present"
+    },
+    {
+      "name": " 2 syntax",
+      "status": "PASS",
+      "detail": "16 JS files parse"
+    },
+    {
+      "name": " 3 manifest",
+      "status": "PASS",
+      "detail": "valid (gameId=HandicapGame, mode=full-iframe)"
+    },
+    {
+      "name": " 4 widget tag",
+      "status": "PASS",
+      "detail": "widget tag present; page loads the verified model"
+    },
+    {
+      "name": " 5 hygiene",
+      "status": "PASS",
+      "detail": "17 shipped files; 2 self-generated image(s); 0 banned strings; 0 third-party binaries"
+    },
+    {
+      "name": " 6 framing",
+      "status": "PASS",
+      "detail": "no framing blocker in any shipped host config"
+    },
+    {
+      "name": " 7 ref param",
+      "status": "INFO",
+      "detail": "does not read the query string — ?ref=chainjam is inherently tolerated"
+    },
+    {
+      "name": " 8 og:image",
+      "status": "INFO",
+      "detail": "og:image present: og-image.png"
+    },
+    {
+      "name": " 9 model loads",
+      "status": "PASS",
+      "detail": "SLUG=handicap, declared 9500 bps"
+    },
+    {
+      "name": "10 paytable",
+      "status": "PASS",
+      "detail": "6 bands, 0..15, monotonic, boundaries exact"
+    },
+    {
+      "name": "11 rtp truth",
+      "status": "PASS",
+      "detail": "9503 bps measured vs 9500 declared (CI +/-7, allowed +/-30 bps), stat 0..12"
+    },
+    {
+      "name": "12 rtp sampler",
+      "status": "PASS",
+      "detail": "9496 bps via makeRng vs 9506 bps independent CSPRNG (diff 10 bps, allowed 60)"
+    },
+    {
+      "name": "13 key space",
+      "status": "PASS",
+      "detail": "700,000 round indices across 7 magnitude windows, 0 collisions"
+    },
+    {
+      "name": "14 weight",
+      "status": "INFO",
+      "detail": "55 files; page 103,266 B raw / 31,222 B gzip"
+    }
+  ],
+  "weight": {
+    "files": 55,
+    "rawPage": 103266,
+    "gzPage": 31222,
+    "rows": [
+      {
+        "f": ".gitignore",
+        "raw": 213,
+        "gz": 180
+      },
+      {
+        "f": "LICENSE",
+        "raw": 1073,
+        "gz": 659
+      },
+      {
+        "f": "README.md",
+        "raw": 10064,
+        "gz": 4600
+      },
+      {
+        "f": "contracts/HandicapGame.sol",
+        "raw": 11038,
+        "gz": 4060
+      },
+      {
+        "f": "contracts/ICasinoGameV2.sol",
+        "raw": 2242,
+        "gz": 951
+      },
+      {
+        "f": "dist/_headers",
+        "raw": 882,
+        "gz": 543
+      },
+      {
+        "f": "dist/game/README.md",
+        "raw": 6122,
+        "gz": 2997
+      },
+      {
+        "f": "dist/game/model.mjs",
+        "raw": 11526,
+        "gz": 4921
+      },
+      {
+        "f": "dist/game.manifest.json",
+        "raw": 873,
+        "gz": 474
+      },
+      {
+        "f": "dist/index.html",
+        "raw": 4502,
+        "gz": 1609
+      },
+      {
+        "f": "dist/og-image.png",
+        "raw": 15241,
+        "gz": 8972
+      },
+      {
+        "f": "dist/src/app.js",
+        "raw": 15929,
+        "gz": 5492
+      },
+      {
+        "f": "dist/src/sdk/guest.mjs",
+        "raw": 26836,
+        "gz": 6281
+      },
+      {
+        "f": "dist/src/styles.css",
+        "raw": 8769,
+        "gz": 2800
+      },
+      {
+        "f": "dist/vercel.json",
+        "raw": 232,
+        "gz": 169
+      },
+      {
+        "f": "docs/adversarial.md",
+        "raw": 20377,
+        "gz": 8445
+      },
+      {
+        "f": "docs/architecture.md",
+        "raw": 9271,
+        "gz": 4096
+      },
+      {
+        "f": "docs/browser-round.png",
+        "raw": 89999,
+        "gz": 87844
+      },
+      {
+        "f": "docs/build-report.md",
+        "raw": 8911,
+        "gz": 4153
+      },
+      {
+        "f": "docs/chain-integration.md",
+        "raw": 6767,
+        "gz": 3148
+      },
+      {
+        "f": "docs/chain-proof.json",
+        "raw": 2667,
+        "gz": 1103
+      },
+      {
+        "f": "docs/dist-preview.png",
+        "raw": 147346,
+        "gz": 140422
+      },
+      {
+        "f": "docs/host-embed.json",
+        "raw": 1134,
+        "gz": 566
+      },
+      {
+        "f": "docs/iframe.md",
+        "raw": 4689,
+        "gz": 2273
+      },
+      {
+        "f": "docs/preview.png",
+        "raw": 146646,
+        "gz": 140717
+      },
+      {
+        "f": "docs/rtp-proof.md",
+        "raw": 9491,
+        "gz": 4359
+      },
+      {
+        "f": "docs/rtp.md",
+        "raw": 8061,
+        "gz": 3808
+      },
+      {
+        "f": "docs/security.md",
+        "raw": 8978,
+        "gz": 4325
+      },
+      {
+        "f": "docs/standalone.md",
+        "raw": 6844,
+        "gz": 3177
+      },
+      {
+        "f": "docs/testnet.md",
+        "raw": 4607,
+        "gz": 2229
+      },
+      {
+        "f": "docs/verification.json",
+        "raw": 7137,
+        "gz": 1625
+      },
+      {
+        "f": "docs/verification.txt",
+        "raw": 46025,
+        "gz": 13738
+      },
+      {
+        "f": "docs/vrf.md",
+        "raw": 3391,
+        "gz": 1738
+      },
+      {
+        "f": "game/README.md",
+        "raw": 6122,
+        "gz": 2997
+      },
+      {
+        "f": "game/model.mjs",
+        "raw": 11526,
+        "gz": 4921
+      },
+      {
+        "f": "index.html",
+        "raw": 4502,
+        "gz": 1609
+      },
+      {
+        "f": "og-image.png",
+        "raw": 15241,
+        "gz": 8972
+      },
+      {
+        "f": "package.json",
+        "raw": 626,
+        "gz": 335
+      },
+      {
+        "f": "public/_headers",
+        "raw": 882,
+        "gz": 543
+      },
+      {
+        "f": "public/game.manifest.json",
+        "raw": 873,
+        "gz": 474
+      },
+      {
+        "f": "public/og-image.png",
+        "raw": 15241,
+        "gz": 8972
+      },
+      {
+        "f": "public/vercel.json",
+        "raw": 232,
+        "gz": 169
+      },
+      {
+        "f": "src/app.js",
+        "raw": 15929,
+        "gz": 5492
+      },
+      {
+        "f": "src/sdk/guest.mjs",
+        "raw": 26836,
+        "gz": 6281
+      },
+      {
+        "f": "src/styles.css",
+        "raw": 8769,
+        "gz": 2800
+      },
+      {
+        "f": "tests/badge-overlap.browser.mjs",
+        "raw": 8447,
+        "gz": 3806
+      },
+      {
+        "f": "tests/contract.test.mjs",
+        "raw": 8391,
+        "gz": 3246
+      },
+      {
+        "f": "tests/evm.test.mjs",
+        "raw": 7504,
+        "gz": 2960
+      },
+      {
+        "f": "tests/model.test.mjs",
+        "raw": 9720,
+        "gz": 3521
+      },
+      {
+        "f": "tests/ui.test.mjs",
+        "raw": 6298,
+        "gz": 2686
+      },
+      {
+        "f": "tools/browser-check.mjs",
+        "raw": 9110,
+        "gz": 3410
+      },
+      {
+        "f": "tools/build.mjs",
+        "raw": 2298,
+        "gz": 996
+      },
+      {
+        "f": "tools/check.mjs",
+        "raw": 1371,
+        "gz": 751
+      },
+      {
+        "f": "tools/enumerate.mjs",
+        "raw": 5175,
+        "gz": 2189
+      },
+      {
+        "f": "tools/serve.mjs",
+        "raw": 1982,
+        "gz": 981
+      }
+    ]
+  }
+}

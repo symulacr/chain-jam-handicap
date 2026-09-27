@@ -1,0 +1,80 @@
+{
+  "slug": "handicap",
+  "gameName": "HandicapGame",
+  "game": "0x8a791620dd6260079bf849dc5567adc3f2fdc318",
+  "ok": true,
+  "rounds": 20,
+  "stuck": 0,
+  "parityFails": 0,
+  "tiers": {
+    "1.2639x": 5,
+    "1.226x": 5,
+    "1.2325x": 5,
+    "1.0771x": 1,
+    "1.4068x": 2,
+    "0x": 2
+  },
+  "realisedRtpPct": 112.5135,
+  "declaredBps": 9500,
+  "maxEscrow": "1000000000000000000",
+  "maxReserved": "7049200000000000000",
+  "maxPayout": "8049200000000000000",
+  "probabilityWad": "10044097900390625",
+  "bodyVarianceScaled": "116619075000000000000000000000000000000000000000000000",
+  "heavyTail": false,
+  "_note": "Captured on the PRE-F3-FIX deployment. probabilityWad/bodyVarianceScaled above are that deployment's single, side-blind values (0.116619075 = not reproducible by any documented formula). The current contract decodes the side from gameData and returns per side: FIRST probabilityWad=33599853515625000, bodyVarianceScaled=wager^2*290760843382584294 (top tier 4 removed); SECOND probabilityWad=10044097900390625, bodyVarianceScaled=wager^2*2734806412979170708 (top tier 0 removed).",
+  "vrfFulfilmentTxs": [
+    "0x55f50886f216b9e479683585ae6a84dc5a1ce2f47e8d6662c474b402751fdd3a",
+    "0x7e3aead9fe5098a7d1bb35db005b80e43eafb55c20ed2a235d603791bf362411",
+    "0xdca204832d4310a90be3d25268d22481ca3fb3b4f3d8530c1980e2ce2693d4bd"
+  ],
+  "requestIds": [
+    "0x66499089192c327b90ce7766579d72502a104726104a440322841eae0fa16e12",
+    "0xd6443bf3f7793d87acc23e7e0b7e3df611691d19f894954b8523a5765b45366c",
+    "0x8675b7255d6ad286f3bab41318efc19bdfa045bc33d8171860eecc5c47a567ad"
+  ],
+  "topPath": {
+    "word": "0x20804c374156f981046cae9a0467d88bad6330edfef76363d893d2b38757a2a2",
+    "stat": 12,
+    "mult": 1.4068,
+    "payoutWei": "1406800000000000000",
+    "nextPhase": 3,
+    "capWei": "8049200000000000000",
+    "withinCap": true
+  },
+  "firstRounds": [
+    {
+      "round": 1,
+      "openTx": "0x55f50886f216b9e479683585ae6a84dc5a1ce2f47e8d6662c474b402751fdd3a",
+      "settleTx": "0x50001c2ef973b897b325e0857d3801c4122da0a0866078e07aca75f18fa15574",
+      "block": 68,
+      "sessionId": "21",
+      "randomness": "0x2d84b1866045ab1ce0eb7458b664f5258e9c39b327eeb494e959b3d411534aa8",
+      "payoutWei": "1263900000000000000",
+      "modelMult": 1.2639,
+      "parity": true
+    },
+    {
+      "round": 2,
+      "openTx": "0x7e3aead9fe5098a7d1bb35db005b80e43eafb55c20ed2a235d603791bf362411",
+      "settleTx": "0xaebd947eb2f1e48d9b40673269a133b6d6cd0788391011722ef3318cdc92e711",
+      "block": 70,
+      "sessionId": "22",
+      "randomness": "0x3591612ab2e7e7b888649b1337d19773e9e967e6b235e26838666941841fca60",
+      "payoutWei": "1263900000000000000",
+      "modelMult": 1.2639,
+      "parity": true
+    },
+    {
+      "round": 3,
+      "openTx": "0xdca204832d4310a90be3d25268d22481ca3fb3b4f3d8530c1980e2ce2693d4bd",
+      "settleTx": "0xd0059fd76a30fefc7ca9c77b68f87004cf184d725b94292a590450827d593929",
+      "block": 72,
+      "sessionId": "23",
+      "randomness": "0x69fda89b6b342b5807f6a5306cc43ddabc462ccddecce85a8f8aec565f69f582",
+      "payoutWei": "1226000000000000000",
+      "modelMult": 1.226,
+      "parity": true
+    }
+  ]
+}

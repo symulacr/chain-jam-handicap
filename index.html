@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HANDICAP — back the winner of a position you are dealt</title>
+<meta name="description" content="One word from Chain's VRF deals a pin board. The contract computes its exact Sprague-Grundy value, so the winner under perfect play is settled before you see it. Back FIRST or SECOND." />
+<meta property="og:title" content="HANDICAP" />
+<meta property="og:description" content="Back the winner of an impartial position you are dealt, under perfect play. The board's branching factor grades the price." />
+<meta property="og:image" content="og-image.png" />
+<meta property="og:type" content="website" />
+<link rel="stylesheet" href="./src/styles.css" />
+<!-- preload the verified model the app runs; the page must never use a transcribed copy -->
+<link rel="modulepreload" href="./game/model.mjs" />
+<script type="module" src="./src/app.js"></script>
+</head>
+<body>
+<div class="shell">
+  <div class="window">
+    <div class="titlebar">
+      <span class="dot"></span>
+      <span>HANDICAP — GRUNDY ENGINE</span>
+      <span class="spacer"></span>
+      <span class="box">_</span><span class="box">#</span>
+    </div>
+    <div class="tabstrip">
+      <a class="tab on" href="#panel-board">BOARD</a>
+      <a class="tab" href="#panel-engine">ENGINE</a>
+      <a class="tab" href="#panel-rules">RULES</a>
+    </div>
+    <div class="body">
+      <div class="cols">
+        <div class="col-left">
+          <div class="cab" id="panel-board">
+            <h2>The deal</h2>
+            <div class="board" id="board"></div>
+            <div class="statline" style="margin-top:6px">
+              <span id="boardmeta">no board dealt yet</span>
+              <span id="source" class="note"></span>
+            </div>
+          </div>
+          <div class="cab" id="panel-rules" style="margin-top:8px">
+            <h2>Payline (from model.mjs)</h2>
+            <table class="bands" id="bands"></table>
+            <div class="note">Declared RTP <b id="rtp"></b>. The multiplier shown is the payout to a
+              player who backed FIRST; the SECOND side is priced separately on the engine panel,
+              because the two sides of this book are not symmetric.</div>
+          </div>
+        </div>
+        <div class="col-right">
+          <div class="cab" id="panel-engine">
+            <h2>Engine</h2>
+            <div class="engine" id="engine">
+              <div class="l"><span class="k">awaiting deal</span><span class="v">press DEAL</span></div>
+            </div>
+          </div>
+          <div class="slip">
+            <div class="cap" id="cap">Back a side before the deal</div>
+            <div class="buttons">
+              <button class="pick on" id="pickFirst">FIRST</button>
+              <button class="pick" id="pickSecond">SECOND</button>
+              <span class="spacer"></span>
+              <label class="note" for="wager" id="wagerLabel">WAGER</label>
+              <input type="text" id="wager" value="1" disabled aria-disabled="true"
+                title="Standalone demo — no wager is placed. BET needs the Chain.wtf host; use DEAL for a free demo round." />
+              <button class="go" id="bet" disabled aria-disabled="true"
+                title="BET needs the Chain.wtf host. Standalone runs a free demo — use DEAL.">BET</button>
+              <button class="go" id="deal">DEAL</button>
+            </div>
+            <div class="result" id="result">
+              <div class="head">Place your bet</div>
+              <div class="sub">Pick FIRST or SECOND, then DEAL. The board is scored the moment it
+                is dealt: the winner under perfect play is a pure function of the word.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar">
+        <div class="cell" id="hostcell">HOST: standalone demo</div>
+        <div class="cell" id="walletcell">WALLET: n/a</div>
+        <div class="cell" id="paritycell">MODEL: ok</div>
+      </div>
+      <div class="note" id="note">Standalone demo seeds 32 bytes from the platform CSPRNG and runs
+        model.mjs in this page. Nothing is submitted.</div>
+    </div>
+  </div>
+  <div class="foot">HANDICAP — an impartial combinatorial game under perfect play. No third-party
+    assets: the board is CSS, the type is your system font.</div>
+</div>
+
+<script async src="https://jam.chain.wtf/widget.js"></script>
+</body>
+</html>
