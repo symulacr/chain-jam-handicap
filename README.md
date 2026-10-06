@@ -140,6 +140,7 @@ side that was locked in before the word existed. See `docs/security.md` (finding
 |---|---|
 | repository | **https://github.com/symulacr/chain-jam-handicap** |
 | branch | `master` |
+| jam status | **approved**, submitted 2026-09-27, live in the jam gallery |
 | public build | https://chain-jam-handicap.vercel.app |
 
 Pushed and current on `master`. Paths like `research/…`, `jam-candidates/…` and `vendor/…` cited
