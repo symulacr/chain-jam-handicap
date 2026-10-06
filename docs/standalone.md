@@ -31,8 +31,8 @@ $ for u in / /src/app.js /src/styles.css /game/model.mjs /src/sdk/guest.mjs /gam
 
 ## The real headless-browser run (this restructure)
 
-Driven over the DevTools Protocol with
-`/home/eya/.agent-browser/browsers/chrome-154.0.8037.57/chrome` by `tools/browser-check.mjs`
+Driven over the DevTools Protocol with a headless Chrome 154 (the binary this machine's
+browser toolchain resolves; any Chromium ≥ 130 works) by `tools/browser-check.mjs`
 (`chrome --dump-dom` hangs on these pages because the 2.5 s grace timer never reaches idle). The
 driver clicks **SECOND**, clicks **DEAL**, reads the settled round, then clicks **DEAL** again and
 asserts a new board.

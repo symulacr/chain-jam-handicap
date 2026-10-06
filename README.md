@@ -134,6 +134,18 @@ The committed side is written to `gameState` at `onSessionStart` and read back a
 (the `_committedPick` path), with `gameData` only as a fallback — so the side that settles is the
 side that was locked in before the word existed. See `docs/security.md` (finding S2, fixed).
 
+## Where this lives
+
+| | |
+|---|---|
+| repository | **https://github.com/symulacr/chain-jam-handicap** |
+| branch | `master` |
+| public build | https://chain-jam-handicap.vercel.app |
+
+Pushed and current on `master`. Paths like `research/…`, `jam-candidates/…` and `vendor/…` cited
+in the docs below are relative to the parent monorepo, not to this repository; a clean clone of
+this repo builds and tests on its own.
+
 ## Public deployment
 
 The page is a static tree. Build it, then deploy **`dist/`** to any static host (Netlify, Cloudflare

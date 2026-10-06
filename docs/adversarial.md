@@ -67,7 +67,7 @@ re-derivation) further down the same file. `game/model.mjs` was read-only and wa
 | `README.md` (RTP table) | FIRST 9499.9956 / SECOND 9500.0037 | FIRST 9499.9911 / SECOND 9500.0109 |
 | `docs/rtp.md` §1 | same, with `94.99996%` / `95.00004%` | `94.99991%` / `95.00011%` |
 | `docs/rtp-proof.md` §2.4 | FIRST 9499.9956 / SECOND 9500.0037 | FIRST 9499.9911 / SECOND 9500.0109 |
-| `docs/build-report.md` RTP table | FIRST 9499.9956 / SECOND 9500.0037 | FIRST 9499.9911 / SECOND 9500.0109 |
+| `docs/build-report.md` RTP table (removed since: it described a superseded pre-restructure build) | FIRST 9499.9956 / SECOND 9500.0037 | FIRST 9499.9911 / SECOND 9500.0109 |
 
 `game/README.md:103-104` carries the same wrong figures. It is **not** in the permitted edit set
 (`README.md` + `docs/**` only), so it was **not** corrected — see §"Un-fixable". Note that
@@ -232,7 +232,7 @@ At least six numeric/factual claims were chased against the actual files/evidenc
 
 | claim (source) | test | result |
 |---|---|---|
-| per-side exact RTP `9499.9956` / `9500.0037` (`README.md`, `docs/rtp.md`, `docs/rtp-proof.md`, `docs/build-report.md`, `game/README.md`) | independent enumeration (Attack 1) | **WRONG** → corrected to `9499.9911` / `9500.0109` where in scope |
+| per-side exact RTP `9499.9956` / `9500.0037` (`README.md`, `docs/rtp.md`, `docs/rtp-proof.md`, `docs/build-report.md` (removed), `game/README.md`) | independent enumeration (Attack 1) | **WRONG** → corrected to `9499.9911` / `9500.0109` where in scope |
 | `npm test` runs "the model tests (node --test tests/model.test.mjs)" (`README.md:63`) | `package.json` `"test"` | **WRONG** — runs both `tests/model.test.mjs` and `tests/contract.test.mjs` → corrected |
 | payline table `P(FIRST)` / prices / branching (`README.md`, `game/README.md`, `docs/*`) | independent enumeration | correct (0.8820/0.7749/0.7708/0.7516/0.6753; prices 10771…14068 / 80492…29258) |
 | `P ≈ 0.772 overall` (`README.md`) | enumeration | correct: 202356/262144 = 0.771926 |
@@ -240,7 +240,7 @@ At least six numeric/factual claims were chased against the actual files/evidenc
 | contract bytecode `2561 B creation / 2533 B runtime` (opt 200) and `4068 B` unoptimized (`README.md`, `docs/rtp.md`, `docs/security.md`) | `solc 0.8.34 --optimize --optimize-runs 200` / plain | **exactly verified**: 2561 / 2533 / 4068 |
 | vendored bridge sha256 `46263af1…e75fe` (`README.md`, `docs/architecture.md`, `docs/chain-integration.md`) | `sha256sum src/sdk/guest.mjs` | verified exact |
 | interface byte-identical to prototype (`docs/chain-integration.md`, sha `0994930b…` ) | `sha256sum contracts/ICasinoGameV2.sol` | verified exact (`0994930bd0…9752a4`) |
-| `og-image.png` is a self-generated 1200×630 PNG (`README.md`, `game/README.md`, `docs/build-report.md`) | PNG header parse | verified: 1200×630, depth 8, colour type 2, 15241 B; identical across `og-image.png`, `public/`, `dist/` |
+| `og-image.png` is a self-generated 1200×630 PNG (`README.md`, `game/README.md`, `docs/build-report.md` (removed)) | PNG header parse | verified: 1200×630, depth 8, colour type 2, 15241 B; identical across `og-image.png`, `public/`, `dist/` |
 | no `ico|bmp|exe|wasm|ttf|otf|woff|mp3|wav|svg|jpg` assets (`README.md`) | `find` | verified: none |
 | "no runtime dependencies … no `npm install`" (`README.md`) | `package.json` | verified: zero `dependencies`/`devDependencies`; clean checkout built+tests with no `node_modules` |
 | public production URL serves the page + manifest with the stated headers (`README.md`, `docs/standalone.md`) | `curl` + fetch of `https://chain-jam-handicap.vercel.app` | verified: `/` 200 `text/html`, `/game/model.mjs` + `/src/app.js` 200 `application/javascript`, `/game.manifest.json` 200 `application/json` + `access-control-allow-origin: *`; no `x-frame-options`/CSP; widget badge present; a real fetch rendered a settled round (`PAID 1.2260x — FIRST WINS`) |
