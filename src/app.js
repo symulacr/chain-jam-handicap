@@ -185,7 +185,9 @@ function reveal(word, pickUsed, sourceName, contractGame, silent) {
 
 // ------------------------------------------------------------------ sound (optional, gesture-gated)
 let audio = null;
+let muted = false;
 function chime(win) {
+  if (muted) return;
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
@@ -204,14 +206,31 @@ function chime(win) {
   } catch (_) { /* sound is optional */ }
 }
 
+// Backing a side IS this game's one decision, so it gets its own tick, one octave apart per side.
+function tick(side) {
+  chime(side === 1);
+}
+
 // ------------------------------------------------------------------ pick + demo deal
 function setPick(next) {
+  const changed = pick !== next;
   pick = next;
   $('pickFirst').classList.toggle('on', pick === 'first');
   $('pickSecond').classList.toggle('on', pick === 'second');
+  // Only on a real change: boot calls setPick once, and a boot tick before the user has
+  // interacted would be an unsolicited noise.
+  if (changed) tick(pick === 'first' ? 1 : 0);
 }
 $('pickFirst').addEventListener('click', () => setPick('first'));
 $('pickSecond').addEventListener('click', () => setPick('second'));
+// Mute is read at the top of chime(), so toggling it stops every later cue without touching a
+// tone already ringing. aria-pressed carries the state, since an emoji swap is silent to AT.
+$('mute').addEventListener('click', () => {
+  muted = !muted;
+  const b = $('mute');
+  b.textContent = muted ? '🔇' : '🔊';
+  b.setAttribute('aria-pressed', muted ? 'true' : 'false');
+});
 
 $('deal').addEventListener('click', () => {
   const bytes = crypto.getRandomValues(new Uint8Array(32));

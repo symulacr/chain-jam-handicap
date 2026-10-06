@@ -147,6 +147,17 @@ Pushed and current on `master`. Paths like `research/…`, `jam-candidates/…` 
 in the docs below are relative to the parent monorepo, not to this repository; a clean clone of
 this repo builds and tests on its own.
 
+## Sound
+
+WebAudio oscillators only — **no audio file ships**, matching the entry's content rules. Backing a
+side ticks once (and only on a real change, never on boot); settling plays a rising tone when the
+wager pays and a low one when it does not. The settle tone keys off `mk > 0`, the payout, rather
+than `won`, so what you hear and what the slip says cannot disagree if the paytable ever changes. A
+silent flag keeps the boot round quiet. The titlebar carries a mute button (`#mute`, a real
+`<button>` with `aria-pressed`) that stops every later cue without touching the round in flight.
+Driven in a real headless browser: one oscillator per deal across paying and losing rounds, zero
+while muted, and zero on boot.
+
 ## Public deployment
 
 The page is a static tree. Build it, then deploy **`dist/`** to any static host (Netlify, Cloudflare

@@ -305,3 +305,21 @@ test('D9: a settled round whose gameState cannot be read still resolves on scree
     assert.equal(app.el('bet').disabled, false, `${label}: BET must be re-enabled after the failure`);
   }
 });
+
+// ---------------------------------------------------------------------- D8: audio
+// Sound is presentation only. The guards are about three things: the entry ships no audio FILE
+// (its content rules forbid one), the mute control is real and announces its state, and the
+// settle tone keys off the payout rather than the winner — `won` and `mk > 0` agree by
+// construction, and keying on money is what makes them agree if the paytable ever changes.
+test('D10: audio is oscillator-only, mutable, and announced to assistive tech', () => {
+  assert.ok(!/\.(mp3|wav|ogg|m4a|flac)\b/i.test(HTML + CSS + APP), 'the page references no audio file');
+  assert.ok(!/new Audio\(|<audio\b/i.test(APP), 'no HTMLAudioElement; sound is oscillators only');
+  assert.match(APP, /window\.AudioContext \|\| window\.webkitAudioContext/, 'the audio context is feature-detected');
+  assert.match(HTML, /<button class="box" id="mute" type="button"[^>]*aria-pressed="false"/,
+    'index.html ships a real <button id="mute"> carrying its pressed state');
+  assert.match(APP, /\$\('mute'\)\.addEventListener\('click'/, 'the mute control is wired');
+  assert.match(APP, /if \(muted\) return;/, 'muting short-circuits before any oscillator is built');
+  assert.match(APP, /b\.setAttribute\('aria-pressed', muted \? 'true' : 'false'\)/, 'muting is announced to assistive tech');
+  assert.match(APP, /if \(!silent\) chime\(mk > 0\);/, 'the settle tone is gated on the payout, not the winner');
+  assert.match(APP, /if \(changed\) tick\(/, 'the pick tick fires only on a real side change, not on boot');
+});
