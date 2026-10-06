@@ -133,7 +133,7 @@ carried honestly, not overstated.
 | claim | status |
 |---|---|
 | the contract's runtime on an EVM | **PROVEN on the local simulator** — deployed (block 21, `gasUsed` 471895) and 21 sessions settled with the on-chain payout equal to `model.outcome(randomness)`, 0 stuck / 0 parity failures (`docs/chain-proof.json`); production-chain runtime **UNPROVEN** |
-| the embed path in the local host harness | **PROVEN** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (`docs/host-embed.json`); the production host is **EXTERNAL BLOCKED** (`docs/testnet.md`) |
+| the embed path in the local host harness | **PROVEN** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (`docs/verification.txt` §8); the production host is **EXTERNAL BLOCKED** (`docs/testnet.md`) |
 | host-level replay / double-settlement / stale-session guarantees | taken from `CONTRACT_CONSTRAINTS.md`, not re-executed (production host guarantees remain UNPROVEN) |
 | sandboxed-iframe behaviour | **OBSERVED in the local host harness** (the guest mounted, wagered and settled in the iframe); the production host's exact sandbox was not run |
 | adversarial extreme wagers without a host | the host owns min/max; not exercised |

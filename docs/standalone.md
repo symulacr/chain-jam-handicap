@@ -119,5 +119,5 @@ figure was measured; the observation is that a cold load resolves to a settled r
 | sound | **NOT TESTED** — headless Chrome has no audio device; the code is gesture-gated and wrapped in `try/catch` |
 | layout on a narrow viewport | **NOT TESTED** — only a desktop-sized window was driven |
 | public HTTPS URL, cold load, standalone round | **PROVEN** — https://chain-jam-handicap.vercel.app resolved a round to `PAID 1.2325x` in a real browser (section above) |
-| embed path in the local host harness | **PROVEN** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (`docs/host-embed.json`) |
+| embed path in the local host harness | **PROVEN** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (`docs/verification.txt` §8) |
 | embed path against the production Chain.wtf host | **EXTERNAL BLOCKED** — no entrant-accessible production host exists; see `docs/testnet.md` |

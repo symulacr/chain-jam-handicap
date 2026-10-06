@@ -43,7 +43,7 @@ title bar are CSS; the pins are CSS radial gradients.
 **Observed (Wave 3).** The game was mounted in the SDK's production-faithful host iframe, a wager was
 placed through the bridge (`openSession`), and the session settled with the guest rendering the
 result — `mounted=true`, `wageredOnChain=true`, `sawSettle=true`, sessions 20 -> 21
-(`docs/host-embed.json`). That exercises the embed path end to end. A top-level standalone page load
+(`docs/verification.txt` §8). That exercises the embed path end to end. A top-level standalone page load
 was also run, from a local static server and from the public HTTPS URL (see `standalone.md`).
 
 **Still argued, not observed.** The rules above are additionally satisfied **by construction and by

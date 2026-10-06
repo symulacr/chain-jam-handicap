@@ -171,7 +171,7 @@ marked **EXTERNAL BLOCKED**, not faked. See `docs/testnet.md`, `EXTERNAL-CHAINWT
   against the live production Chain host. In `vendor/casino-sdk/simulator` the guest mounted, a wager
   was placed **through the bridge**, and the settled reveal was read from the guest's own DOM (session
   62; sessions 20 → 21). The live Chain host remains `EXTERNAL BLOCKED`.
-  See `docs/host-embed.json`, `research/host-embed-report.json`.
+  See `docs/verification.txt` §8 (the run record) and `research/host-embed-report.json` in the parent monorepo.
 - **The contract's runtime is proven on the local simulator** (chain id 31337): 21 settled sessions,
   the side that settled was the side locked in `gameState`, 0 parity failures. Per-settlement gas is
   still not measured (only the deploy `gasUsed` 471895 is). See `docs/verification.txt`.

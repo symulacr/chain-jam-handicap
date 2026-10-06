@@ -104,7 +104,7 @@ EXTERNAL BLOCKED (`docs/testnet.md`).
 | contract compiles standalone | **PROVEN** (`docs/rtp.md` records the command and bytecode) |
 | contract tables match `model.mjs` band-for-band | **PROVEN** (`tests/model.test.mjs`) |
 | standalone demo plays a full round in a browser | **PROVEN** (`docs/standalone.md`, `docs/preview.png`) |
-| embed path in the local host harness | **PROVEN** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (`docs/host-embed.json`) |
+| embed path in the local host harness | **PROVEN** — mounted + wageredThroughHost + settled, sessions 20 -> 21 (`docs/verification.txt` §8) |
 | embed path against the production Chain.wtf host | **EXTERNAL BLOCKED** — no entrant-accessible production host exists (`docs/testnet.md`) |
 | contract deployed and settled on the local simulator (chain id 31337) | **PROVEN** — deploy tx + block 21 + 21 settled sessions, 0 stuck / 0 parity failures (`docs/chain-proof.json`) |
 | gas of an individual *settlement* | **UNPROVEN** — the deploy `gasUsed` (471895) is recorded, but no per-settlement gas figure was captured |
