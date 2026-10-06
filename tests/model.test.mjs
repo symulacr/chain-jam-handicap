@@ -5,7 +5,8 @@
  *
  * Covers the harness contract (band boundaries, tiling, RTP range), the exact position maths
  * against an independently written brute-force Node-Kayles search, the payline against the
- * contract's constants, and the round sampler against the Wave-3 C1 defect shape.
+ * contract's constants, the round sampler against the Wave-3 C1 defect shape, and the per-tier
+ * RTP figures — the aggregate is 9500 by construction, so only the per-tier claim can fail.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -212,11 +213,82 @@ test('makeRng is a pure counter function with no float drift', () => {
 });
 
 // ---------------------------------------------------------------- RTP
+/**
+ * One exhaustive pass over all 2^18 boards, bucketed by the tier the shipped `tierOfMoves`
+ * actually assigns: board counts per tier, bps paid per tier to each side, and the price each
+ * side quotes per tier. Computed once at module load so several tests assert against the same
+ * sweep. Nothing here is taken from the model's own constants — the bucket assignment and the
+ * prices come back out of `outcome()`, which is what makes the comparison a real one.
+ */
+const SWEEP = (() => {
+  const boards = [0, 0, 0, 0, 0];
+  const firstC = [0, 0, 0, 0, 0];
+  const secondC = [0, 0, 0, 0, 0];
+  const firstPaid = [0, 0, 0, 0, 0];
+  const secondPaid = [0, 0, 0, 0, 0];
+  const firstPrice = [0, 0, 0, 0, 0];
+  const secondPrice = [0, 0, 0, 0, 0];
+  for (let board = 0; board < BOARDS; board += 1) {
+    const o = outcome(wordFromBoard(board));
+    boards[o.tier] += 1;
+    if (o.firstWins) {
+      firstC[o.tier] += 1;
+      firstPaid[o.tier] += o.priceFirstBps;
+      firstPrice[o.tier] = o.priceFirstBps;
+    } else {
+      secondC[o.tier] += 1;
+      secondPaid[o.tier] += o.priceSecondBps;
+      secondPrice[o.tier] = o.priceSecondBps;
+    }
+  }
+  return { boards, firstC, secondC, firstPaid, secondPaid, firstPrice, secondPrice };
+})();
+
+test('an independent enumeration reproduces the shipped tier counts and price table exactly', () => {
+  assert.deepEqual(SWEEP.firstC, [19676, 65572, 57936, 50364, 8808], 'boards First wins, per tier');
+  assert.deepEqual(SWEEP.secondC, [2633, 19053, 17226, 16641, 4235], 'boards Second wins, per tier');
+  assert.deepEqual(
+    SWEEP.firstC.map((c, i) => c + SWEEP.secondC[i]),
+    [22309, 84625, 75162, 67005, 13043],
+    'tier sizes n = c0 + c1',
+  );
+  assert.equal(SWEEP.boards.reduce((a, b) => a + b, 0), BOARDS, 'tiers partition 2^18');
+  assert.deepEqual(SWEEP.firstPrice, [10771, 12260, 12325, 12639, 14068], 'First prices, bps');
+  assert.deepEqual(SWEEP.secondPrice, [80492, 42195, 41451, 38252, 29258], 'Second prices, bps');
+});
+
+test('every TIER returns the target RTP on both sides, not just the book on average', () => {
+  // The two aggregate tests below are 9500 for ANY counts summing to 2^18, so they cannot fail
+  // on the counts alone. The per-tier figure is the one with content: rounding one price to
+  // whole bps moves a whole tier, it does not average away across tiers. A tier boundary edit,
+  // or a price edited away from its count, breaks this and leaves the aggregates intact.
+  for (let t = 0; t < 5; t += 1) {
+    const n = SWEEP.boards[t];
+    assert.ok(n > 0, `tier ${t} must hold boards`);
+    const rtpFirst = SWEEP.firstPaid[t] / n;
+    const rtpSecond = SWEEP.secondPaid[t] / n;
+    assert.ok(
+      Math.abs(rtpFirst - EXPECTED_RTP_BPS) <= 1,
+      `tier ${t} FIRST realised ${rtpFirst.toFixed(4)} bps`,
+    );
+    assert.ok(
+      Math.abs(rtpSecond - EXPECTED_RTP_BPS) <= 1,
+      `tier ${t} SECOND realised ${rtpSecond.toFixed(4)} bps`,
+    );
+  }
+});
+
 test('exact RTP across the whole 2^18 board space matches the declaration', () => {
   let sum = 0;
   for (let board = 0; board < BOARDS; board += 1) sum += bandOf(outcome(wordFromBoard(board)).stat);
   const bps = Math.round((sum / BOARDS) * 10000);
   assert.ok(Math.abs(bps - EXPECTED_RTP_BPS) <= 1, `exact ${bps} bps vs declared ${EXPECTED_RTP_BPS}`);
+  // unrounded residue, pinned: it is the fingerprint of the integer-bps price rounding
+  const unroundedBps = (sum / BOARDS) * 10000;
+  assert.ok(
+    Math.abs(unroundedBps - 9499.99105834961) < 1e-6,
+    `unrounded ${unroundedBps} bps`,
+  );
 });
 
 test('both sides of the book return the same RTP (within 1 bp)', () => {
@@ -232,4 +304,12 @@ test('both sides of the book return the same RTP (within 1 bp)', () => {
   assert.ok(Math.abs(first - EXPECTED_RTP_BPS) <= 1, `first side ${first}`);
   assert.ok(Math.abs(second - EXPECTED_RTP_BPS) <= 1, `second side ${second}`);
   assert.ok(Math.abs(first - second) <= 1, `the two sides differ by ${Math.abs(first - second)} bps`);
+  assert.ok(
+    Math.abs(sumFirst / BOARDS - 9499.99105834961) < 1e-9,
+    `first unrounded ${sumFirst / BOARDS} bps`,
+  );
+  assert.ok(
+    Math.abs(sumSecond / BOARDS - 9500.010906219482) < 1e-9,
+    `second unrounded ${sumSecond / BOARDS} bps`,
+  );
 });

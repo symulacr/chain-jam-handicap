@@ -237,6 +237,14 @@ function decodeGameState(hex) {
   return { board: Number(at(0)), grundy: Number(at(1)), moves: Number(at(2)), tier: Number(at(3)), pick: Number(at(4)), payout: at(5) };
 }
 
+function setBetAvailability(ready) {
+  const off = !ready || busy;
+  $('wager').disabled = off;
+  $('bet').disabled = off;
+  $('wager').setAttribute('aria-disabled', String(off));
+  $('bet').setAttribute('aria-disabled', String(off));
+}
+
 function applySnapshot(next) {
   snapshot = next;
   const wallet = next?.wallet?.status;
@@ -253,22 +261,29 @@ function applySnapshot(next) {
     const frac = maxWagerBase % (10n ** BigInt(decimals));
     $('wager').title = 'host limit: about ' + whole.toString() + (frac > 0n ? '.' + frac.toString().padStart(decimals, '0').slice(0, 4) : '') + ' ' + sym;
   }
-  $('wager').disabled = !ready || busy;
-  $('bet').disabled = !ready || busy;
-  $('wager').setAttribute('aria-disabled', String(!ready || busy));
-  $('bet').setAttribute('aria-disabled', String(!ready || busy));
+  setBetAvailability(ready);
   if (pending) {
     const items = next?.sessions?.items ?? [];
     const row = items.find((x) => x.sessionKey === pending.sessionKey);
     if (row && (row.isSettled || row.phase === SessionPhase.SETTLED) && row.raw?.gameState) {
-      const g = decodeGameState(row.raw.gameState);
+      // The round has already settled on-chain, so it has to resolve on screen either way.
+      // Clearing `pending` before this check used to drop the round silently whenever the
+      // gameState could not be read, leaving the player on a spin that never ends.
       const p = pending;
+      let g = null;
+      let why = 'it did not decode';
+      try { g = decodeGameState(row.raw.gameState); } catch (err) { why = String(err && err.message ? err.message : err); }
       pending = null;
       busy = false;
       clearTimeout(watchdog);
       if (g) {
         g.wager = BigInt(row.stake ?? row.wager ?? p.wager ?? '0');
         revealCall(row, p, g);
+      } else {
+        $('note').textContent = 'Session ' + String(row.sessionId ?? p.sessionId ?? '?')
+          + ' settled but its result could not be read (' + why + '). Nothing is shown here;'
+          + ' open the session in your wallet to see what it paid out.';
+        setBetAvailability(ready);
       }
     }
   }
@@ -287,20 +302,28 @@ $('bet').addEventListener('click', () => {
     $('note').textContent = 'Wager must be a decimal number of tokens.';
     return;
   }
-  if (maxWagerBase !== null) {
-    const decimals = Number(snapshot?.token?.decimals ?? 18);
-    const parts = raw.split('.');
-    const frac = ((parts[1] ?? '') + '0'.repeat(decimals)).slice(0, decimals);
-    const base = BigInt(parts[0] || '0') * 10n ** BigInt(decimals) + BigInt(frac || '0');
-    if (base > maxWagerBase) {
-      $('note').textContent = 'Wager exceeds the host risk limit for this game right now; lower it.';
-      return;
-    }
+  // The host escrows BASE UNITS: the contract settles against ctx.wagerBase and its quotes take
+  // the same unit (contracts/HandicapGame.sol), the bundled SDK caps are bigints in that unit,
+  // and 01-lifeboat hands openSession `parseAmount(raw, decimals).toString()`. So the field is
+  // scaled once here and the scaled value is what gets clamped AND what gets transmitted —
+  // sending `raw` clamped as base units escrowed up to 10**decimals times less than the limit
+  // this page says it enforced.
+  const decimals = Number(snapshot?.token?.decimals ?? 18);
+  const parts = raw.split('.');
+  const frac = ((parts[1] ?? '') + '0'.repeat(decimals)).slice(0, decimals);
+  const base = BigInt(parts[0] || '0') * 10n ** BigInt(decimals) + BigInt(frac || '0');
+  if (base <= 0n) {
+    $('note').textContent = 'Wager must be greater than zero.';
+    return;
+  }
+  if (maxWagerBase !== null && base > maxWagerBase) {
+    $('note').textContent = 'Wager exceeds the host risk limit for this game right now; lower it.';
+    return;
   }
   busy = true;
-  pending = { sessionKey: null, sessionId: null, wager: raw, pick: pick === 'second' ? 2 : 1 };
+  pending = { sessionKey: null, sessionId: null, wager: base.toString(), pick: pick === 'second' ? 2 : 1 };
   const gameData = pick === 'second' ? '0x02' : '0x01';
-  host.openSession({ wager: raw, gameData })
+  host.openSession({ wager: base.toString(), gameData })
     .then((res) => {
       pending.sessionKey = res.sessionKey;
       $('note').textContent = 'Session ' + res.sessionKey + ' opened; waiting for the word.';

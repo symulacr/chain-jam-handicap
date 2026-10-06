@@ -31,12 +31,24 @@
  *
  * RTP
  *   The seed space is 2^256, so RTP is NOT taken on faith from a Monte Carlo run. The board
- *   space (2^18) is enumerated exhaustively by `tools/enumerate.mjs`, the exact tier counts
- *   below are that enumeration's output, and the declared RTP is the exact weighted sum of
- *   those integer odds. `research/wave5-contradictions.md` C1 is why: a correct game shipped a
- *   false 96.816% declaration because a broken round SAMPLER was trusted. The sampler here is
- *   the C1-safe counter-based makeRng below, and the harness re-derives RTP from a CSPRNG this
- *   module does not control.
+ *   space (2^18) is enumerated exhaustively by `tools/enumerate.mjs` and the exact tier counts
+ *   below are that enumeration's output. Be precise about WHAT that enumeration proves,
+ *   because the tempting claim is circular: the 9500 bps AGGREGATE is forced by the price
+ *   formula, not measured. With price_i = RTP_TARGET * n_i / c_i,
+ *     RTP = sum_i (price_i * c_i) / 2^18 = RTP_TARGET * sum_i(n_i) / 2^18 = RTP_TARGET
+ *   for ANY counts whose sum is the board space, right ones or nonsense ones. So the aggregate
+ *   is 9500 by construction and no aggregate test can falsify it.
+ *   The enumeration's real contribution is two other things. (a) The COUNTS themselves: they
+ *   are the input to every price, and they are what the Solidity paytable mirrors.
+ *   (b) The PER-TIER return, which is not telescoped away: tier i realises
+ *   price_i * c_i / n_i, so integer-bps rounding of one price moves that whole tier by up to
+ *   0.5 bps instead of being averaged out. Every tier is within 0.5 bps of target, which is
+ *   the claim with content. tests/model.test.mjs pins the counts against an independent
+ *   enumeration and asserts the per-tier figures.
+ *   `research/wave5-contradictions.md` C1 is why this is enumerated rather than sampled at all:
+ *   a correct game shipped a false 96.816% declaration because a broken round SAMPLER was
+ *   trusted. The sampler here is the C1-safe counter-based makeRng below, and the harness
+ *   re-derives RTP from a CSPRNG this module does not control.
  *
  * PURE FUNCTION
  *   outcome(word) reads bits 232..255 of the word (the first three bytes) and nothing else:
@@ -110,6 +122,9 @@ function tierOfMoves(moves) {
 /**
  * EXACT tier counts from tools/enumerate.mjs over all 2^18 boards.
  *   c1 = boards where First wins, c0 = boards where Second wins, n = c0 + c1.
+ * The only property the pricing below consumes is sum(n) == BOARDS; the aggregate RTP follows
+ * from that alone (see the RTP header). These exact integers are worth pinning because they are
+ * what the per-tier prices are built from and what contracts/HandicapGame.sol must mirror.
  */
 const TIER_C1 = [19676, 65572, 57936, 50364, 8808];
 const TIER_C0 = [2633, 19053, 17226, 16641, 4235];
@@ -121,13 +136,19 @@ const RTP_TARGET_BPS = 9500;
 
 /**
  * Fair price of each side in each tier, in basis points:
- *   price = RTP_TARGET / P(that side wins | tier)
- * so price * P(win | tier) == RTP_TARGET for every (tier, side) cell. Integer bps.
+ *   price = RTP_TARGET / P(that side wins | tier) = RTP_TARGET * n_i / c_i
+ * The per-tier identity price * P(win | tier) == RTP_TARGET is a real constraint, not a
+ * restatement of the aggregate: it is what makes every TIER pay the target rather than only the
+ * book on average. Rounding each price to whole bps leaves every tier within 0.5 bps of target;
+ * summed over the five tiers the residual is 0.0089 bps (FIRST) and 0.0109 bps (SECOND), which
+ * is why the declared 9500 survives Math.round on both sides.
  */
 const PRICE_FIRST_BPS = TIER_N.map((n, i) => Math.round((RTP_TARGET_BPS * n) / TIER_C1[i]));
 const PRICE_SECOND_BPS = TIER_N.map((n, i) => Math.round((RTP_TARGET_BPS * n) / TIER_C0[i]));
 
-/** Exact RTP of each side over the whole board space, in bps (integer arithmetic). */
+/** Exact RTP of each side over the whole board space, in bps (integer arithmetic).
+ *  This equals RTP_TARGET for any counts summing to BOARDS, so it is a self-consistency check
+ *  on the table, not a measurement. The per-tier figures are the part that can go wrong. */
 const exactRtp = (prices, counts) => {
   let sum = 0;
   for (let i = 0; i < prices.length; i += 1) sum += prices[i] * counts[i];

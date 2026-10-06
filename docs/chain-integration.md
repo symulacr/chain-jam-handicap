@@ -36,10 +36,15 @@ settled.
 
 ## The pick is committed before the word exists
 
-`gameData` carries the side. The host passes it at `openSession` time, the contract reads it in both
-`onSessionStart` (to commit the reserve) and `onRandomness` (to price the bet). The player's choice
-is therefore fixed before the VRF word is known, which is the property the game's fairness claim
-rests on.
+`gameData` carries the side. The host passes it at `openSession` time, and the contract reads it in
+`onSessionStart` (to commit the reserve and to write `abi.encode(uint256 pick)` into
+`newGameState`). `onRandomness` does **not** re-read it: it takes the side from `_committedPick(ctx)`
+(`contracts/HandicapGame.sol:136-143`, called at `:202`), which decodes the word `onSessionStart`
+committed. `gameData` is only a fallback there, for a context that never passed through
+`onSessionStart` or whose host returned no state — the candidate's original behaviour, kept so the
+payout cannot regress (`security.md`). The player's choice is therefore fixed before the VRF word is
+known, which is the property the game's fairness claim rests on. `tests/evm.test.mjs` asserts both
+directions on a deployed contract, including the two fallback cases.
 
 ## Embed lifecycle in the page
 

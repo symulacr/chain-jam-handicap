@@ -1,7 +1,127 @@
 ================================================================================
 HANDICAP — verification record (top3/02-handicap)
 ================================================================================
+
+THIS FILE IS AN APPEND-ONLY LOG OF DATED RUNS. IT IS NOT A SNAPSHOT OF ONE RUN.
+Every block is pasted verbatim from a captured command. A metric that appears twice with two
+different values is NOT a contradiction: the earlier block is history and the later block
+supersedes it.
+
+RUN INDEX — in file order, each with the date its commands were actually run
+  RUN 2026-10-02  CROSS-APP DOC + TEST-GATE CORRECTION ...... section 0 below
+  RUN 2026-09-27  Wave 2B restructure (sections 0-9)
+  RUN 2026-09-27  WAVE 3 — REAL CHAIN + HOST EMBED + PUBLIC HTTPS
+  RUN 2026-09-27  WAVE 4 — ADVERSARIAL CLOSEOUT + CLEAN CHECKOUT
+  RUN 2026-09-27  repair / browser-verify run (near the end of this file)
+  Several separate runs share the date 2026-09-27; the section headers are the only thing that
+  distinguishes them. Where a historical date is genuinely unknown it is written "date not
+  recorded" rather than guessed.
+
+SUPERSEDED VALUES — each was a real run; none is wrong for its own date
+  `npm test` totals                tests 24 / pass 24  (Wave 2B, WAVE 3 and WAVE 4 blocks)
+                                ->  tests 30 / pass 30  (later run, after tests/ui.test.mjs
+                                    was wired in)  ->  tests 40 / pass 40 (RUN 2026-10-02, after
+                                    tests/evm.test.mjs was wired in).  The count rises because
+                                    test FILES were added to `npm test`; an older block is not
+                                    evidence that any check was removed.
+  shared-harness check 11 "rtp truth"   9503 bps (Wave 2B)  /  9499 bps (WAVE 3) against the
+                                 declared 9500.  A random 2,000,000-word sample that moves
+                                 between runs by design. It is not the RTP evidence: the exact
+                                 figure comes from `npm run enumerate` walking all 2^18 boards.
+
 Phase : FINAL BUILD-COMPLETION, Wave 2B (restructure of jam-candidates/handicap)
+--------------------------------------------------------------------------------
+0. CURRENT RUN — 2026-10-02
+   Cross-app doc-claim correction, and the EVM toolchain gate made fatal.
+--------------------------------------------------------------------------------
+$ cd /home/eya/wtfjam/top3/02-handicap && npm test
+
+> handicap@1.0.0 test
+> node --test tests/model.test.mjs tests/contract.test.mjs tests/ui.test.mjs tests/evm.test.mjs
+
+✔ contract is MIT and pinned to the required compiler line (1.436796ms)
+✔ contract implements the ICasinoGameV2 surface (0.266437ms)
+✔ interface declares the session enum and the context/step shapes (0.120484ms)
+✔ there is no constructor and every handler is pure or view (0.64217ms)
+✔ onPlayerAction reverts (the manifest advertises submitAction: false) (0.130839ms)
+✔ quoteForfeitPayout returns 0 (nothing is cashable mid-round) (0.188548ms)
+✔ reserve discipline: start commits the worst case, settle releases nothing (0.195693ms)
+✔ MAX_PRICE_BPS equals the largest price field on either side of the book (0.523765ms)
+✔ payout is the single floor-divided source of truth and the RTP constant is present (0.884656ms)
+✔ the committed side is read back from gameState (finding S2 fixed) (0.494737ms)
+✔ the row tables in the contract are the model tables (0.518467ms)
+✔ quoteRiskParams quotes the side named in gameData, per the documented body-variance formula (77.812396ms)
+▶ handicap EVM tests
+  ✔ the committed side round-trips and pays the model price, for both picks (36.668958ms)
+  ✔ quoteRiskParams is side-aware and matches the documented body variance (F3) (19.506686ms)
+  ✔ boundaries: a bad pick reverts; a 1-byte / empty gameState falls back to gameData (26.155006ms)
+✔ handicap EVM tests (345.786699ms)
+✔ SLUG and RTP declaration (0.936307ms)
+✔ BANDS tile the stat space with no gap, no overlap and non-decreasing multipliers (0.215314ms)
+✔ bandOf agrees with BANDS at both edges of every band (0.11111ms)
+✔ row Grundy table equals an independently written brute-force search (1.101281ms)
+✔ worked examples: full row, 4-pin run, empty board, tier boundaries (0.272582ms)
+✔ the winner is exactly "the XOR of the row Grundy values is non-zero" (16.936473ms)
+✔ moves/tier boundaries (67.364453ms)
+✔ contract price tables match model.mjs band-for-band (0.638073ms)
+✔ contract carries the model table constants verbatim (0.329333ms)
+✔ makeRng returns distinct 32-byte words across magnitudes up to 2^52 (501.98893ms)
+✔ makeRng is a pure counter function with no float drift (0.285506ms)
+✔ an independent enumeration reproduces the shipped tier counts and price table exactly (0.262004ms)
+✔ every TIER returns the target RTP on both sides, not just the book on average (0.189841ms)
+✔ exact RTP across the whole 2^18 board space matches the declaration (64.439268ms)
+✔ both sides of the book return the same RTP (within 1 bp) (56.518599ms)
+✔ D2: disabled buttons are visually inert (opacity, filter and cursor differ) (1.158816ms)
+✔ D2: BET and WAGER explain why they are disabled (title + aria-disabled) (0.327664ms)
+✔ D3: the standalone slip says the wager is a demo (visible labelling) (0.181705ms)
+✔ D4: a phone-width media query flattens and reorders the primary flow (0.470183ms)
+✔ D6: the bet bar out-stacks the fixed widget badge (0.201807ms)
+✔ D6: the widget script is still shipped (submission requirement) (0.131835ms)
+✔ Wave 4: the BOARD/ENGINE/RULES tabs are functional in-page links, not dead chrome (0.358773ms)
+✔ D8: BET hands the host the exact quantity the limit check accepted (13.271661ms)
+✔ D9: a settled round whose gameState cannot be read still resolves on screen (9.364589ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2589.336804
+
+$ npm run check
+
+> handicap@1.0.0 check
+> node tools/check.mjs
+
+  ok    dist/game/model.mjs
+  ok    dist/src/app.js
+  ok    dist/src/sdk/guest.mjs
+  ok    game/model.mjs
+  ok    src/app.js
+  ok    src/sdk/guest.mjs
+  ok    tests/badge-overlap.browser.mjs
+  ok    tests/contract.test.mjs
+  ok    tests/evm.test.mjs
+  ok    tests/model.test.mjs
+  ok    tests/ui.test.mjs
+  ok    tools/browser-check.mjs
+  ok    tools/build.mjs
+  ok    tools/check.mjs
+  ok    tools/enumerate.mjs
+  ok    tools/serve.mjs
+
+16 files parsed, 0 failed
+
+--------------------------------------------------------------------------------
+RUN 2026-09-27 — WAVE 2B RESTRUCTURE.  SUPERSEDED BY SECTION 0 ABOVE.
+
+The counts inside this run (tests 24 / pass 24, and the 9503 bps rtp-truth figure) are that
+run's own and are preserved exactly as recorded. Note the section below is numbered 0 in the
+original; it is renamed here to 0b so it cannot be confused with the current run.
+
+0b. RUN 2026-09-27 — WAVE 2B RESTRUCTURE (continued)
+--------------------------------------------------------------------------------
 Tree  : /home/eya/wtfjam/top3/02-handicap
 Node  : v26.10.0      solc : 0.8.34+commit.80d5c536.Linux.g++      Chrome : 154.0.8037.57
 Note  : this is a RESTRUCTURE, not a rewrite. The maths, the contract derivation and the verified
@@ -9,7 +129,7 @@ Note  : this is a RESTRUCTURE, not a rewrite. The maths, the contract derivation
         tidy (see §5). The only paths edited in copied sources were import specifiers and comments.
 
 --------------------------------------------------------------------------------
-0. Provenance — what was copied verbatim
+0b.1  Provenance — what was copied verbatim
 --------------------------------------------------------------------------------
 game/model.mjs        <- jam-candidates/handicap/model.mjs                (outcome()+paytable; only a comment path updated)
 src/sdk/guest.mjs     <- jam-candidates/shared/guest.mjs                  (BYTE-IDENTICAL)

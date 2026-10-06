@@ -82,7 +82,7 @@ priceSecond[t] = round(9500 * n[t] / c0[t])      ->  80492, 42195, 41451, 38252,
 that makes the book fair: `priceFirst[t] * c1[t] ~= 9500 * n[t]` and `priceSecond[t] * c0[t] ~=
 9500 * n[t]`, so **every (tier, side) cell** returns the target, not merely the average.
 
-### 2.4 The declared number
+### 2.4 The declared number — and what this figure is not evidence of
 
 ```
 RTP_backing_FIRST  = sum_t priceFirst[t]  * c1[t] / 2^18 = 9499.9911 bps -> 9500
@@ -91,6 +91,30 @@ RTP_backing_SECOND = sum_t priceSecond[t] * c0[t] / 2^18 = 9500.0109 bps -> 9500
 
 Both sides land on the same integer. `EXPECTED_RTP_BPS = 9500` is the model's exported constant,
 and the same integer appears in the contract.
+
+**Read those two numbers as arithmetic, not as a measurement.** With
+`price_i = 9500 * n_i / c_i` (rounded to integer bps),
+
+```
+sum_i price_i * c_i / 2^18  =  9500 * sum_i n_i / 2^18  + rounding  =  9500 + rounding
+```
+
+and `sum_i n_i = 2^18` for **any** set of counts that covers the board space — right ones, nonsense
+ones, hand-picked ones. So the aggregate is 9500 *by construction*: no enumeration of any kind can
+falsify it, and `9499.9911` / `9500.0109` differ from 9500 only by the ±0.5 bps integer rounding of
+five prices. Quoting the aggregate as evidence that the enumeration worked would be circular.
+
+What the enumeration *does* establish is the per-tier return, which is not telescoped away: tier `i`
+realises `price_i * c_i / n_i`, so rounding one price moves that whole tier by up to 0.5 bps instead
+of averaging out. **Every (tier, side) cell is within 0.295 bps of 9500** on both sides (FIRST
+9500.295 at tier 2 is the widest; SECOND 9500.045/9500.060 at tiers 1 and 3), and the two sides of a
+tier agree to within 0.36 bps. That is the claim with content, and it holds *to integer-bps
+rounding*, not exactly — the price is an integer bps, so exact equality is impossible in general.
+`docs/adversarial.md` §Attack 1 carries the per-cell table; `tests/model.test.mjs` pins the counts
+against an independent enumeration and asserts the per-tier figures, and its header
+(`tests/model.test.mjs:9`) records why an aggregate-only test would be theatre. The counts
+themselves are the other real output — they are the input to every price and what the Solidity
+paytable mirrors.
 
 **Honest asymmetry note.** The two sides are not symmetric in *price*, only in *expected value*.
 The position family favours the first player (P(FIRST) = 0.7719 overall), so FIRST is short-priced

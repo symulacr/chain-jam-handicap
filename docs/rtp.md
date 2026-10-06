@@ -28,6 +28,15 @@ ENUMERATION OK
 Both sides use the same price construction, `price = round(9500 * n_tier / count_of_winning_boards)`,
 so the equality is structural rather than tuned.
 
+**Be precise about what the aggregate proves.** Because `price_i = 9500 * n_i / c_i`, the sum
+telescopes to 9500 for *any* counts covering the board space, so 9499.9911 / 9500.0109 are the
+aggregate plus five prices' integer rounding, not a measured result, and no aggregate test can
+falsify them. The enumeration's real content is (a) the tier **counts**, which every price is built
+from and which the Solidity paytable mirrors, and (b) the **per-tier** return
+`price_i * c_i / n_i`, where rounding does *not* average out: every (tier, side) cell is within
+0.295 bps of 9500 and the two sides of a tier agree to within 0.36 bps
+(`rtp-proof.md` §2.4, `adversarial.md` §Attack 1).
+
 ## 2. Harness measurement (from `docs/verification.txt`)
 
 ```

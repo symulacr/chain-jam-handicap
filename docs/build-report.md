@@ -48,7 +48,10 @@ Deliverable status for the Wave 6 build. Everything claimed here is either recor
 | harness sampler measurement | 9506 vs 9497 bps (diff 8, allowed 60) | candidate's `makeRng` vs an independent CSPRNG, rounds from 5,000,000 |
 
 Both sides of the book land on the same integer because the price in each tier is
-`round(9500 * n_tier / winning_boards_in_tier)` on both sides. Full derivation: `rtp-proof.md`.
+`round(9500 * n_tier / winning_boards_in_tier)` on both sides — so the aggregate is 9500 by
+construction for any counts covering the board space and is not itself evidence. The enumeration's
+content is the tier counts and the per-tier return, every cell of which is within 0.295 bps of
+9500. Full derivation: `rtp-proof.md` §2.4.
 
 ## Harness
 
